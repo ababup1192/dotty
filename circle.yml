@@ -1,0 +1,23 @@
+machine:
+  node:
+    version: 7.3.0
+
+    post:
+      - curl -o- -L https://yarnpkg.com/install.sh | bash
+
+    dependencies:
+      cache_directories:
+        - elm-stuff
+        - "./tests/elm-stuff"
+        - "~/.yarn-cache"
+
+      pre:
+        - yarn --version
+
+      override:
+        - npm install -g elm
+        - yarn install
+
+      test:
+        override:
+          - yarn test
