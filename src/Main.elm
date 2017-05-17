@@ -23,8 +23,7 @@ initCmd =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch 
-    [
-        AceCodeBox.receiveEditorState msgAceUpdate
+    [ AceCodeBox.receiveEditorState msgAceUpdate
     ]
 
 msgAceUpdate : AceCodeBox.AceCodeBoxInfo -> Msg
