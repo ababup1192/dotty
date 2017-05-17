@@ -3,7 +3,7 @@ module Main exposing (..)
 import Html exposing (program)
 
 import Models exposing (initialModel, Model)
-import Messages exposing (Msg)
+import Messages as Msg exposing (Msg)
 import View exposing (view)
 import Update exposing (update)
 import AceCodeBox
@@ -16,7 +16,7 @@ init =
 initCmd : Cmd Msg
 initCmd = 
     Cmd.batch
-        [ AceCodeBox.initializeAndDisplay { message = "initial" }
+        [ AceCodeBox.initializeAndDisplay initialModel
         ]
 
 -- Subscriptions
@@ -28,7 +28,7 @@ subscriptions model =
     ]
 
 msgAceUpdate : AceCodeBox.AceCodeBoxInfo -> Msg
-msgAceUpdate aceCodeBoxInfo = Messages.UpdateCode aceCodeBoxInfo
+msgAceUpdate aceCodeBoxInfo = Msg.UpdateCode aceCodeBoxInfo
 
 -- Main
 main : Program Never Model Msg

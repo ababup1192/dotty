@@ -1,8 +1,11 @@
 module Models exposing (..)
 
--- Model
+type alias Point = (Int, Int)
+
 type alias Model =
-    { code: String }
+    { code : String,
+      points : List Point }
 
 initialModel : Model
-initialModel = { code = "" }
+initialModel = { code = "[]"
+               , points = [] }

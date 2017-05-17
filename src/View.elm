@@ -4,41 +4,51 @@ import Html exposing (..)
 import Html.Attributes as Attr
 import Svg exposing (..)
 import Svg.Attributes as SvgAttr
+import Svg.Events as SvgEvent
+import Mouse
+import Json.Decode as Decode
 
-import Messages exposing (..)
+import Messages as Msg exposing (Msg)
 import Models exposing (Model)
 
--- View
 view : Model -> Html Msg
-view ( { code } as model) =
+view ( { code, points } as model) =
     div [ Attr.class "hybridEditor"
         ] 
      [
         textEditor,
-        visualEditor
+        visualEditor points
     ]
 
 textEditor : Html Msg
 textEditor = 
-    div [ Attr.id "editor"
-        , Attr.style [ ("position", "relative")
-            , ("width",  pixels 450)
-            , ("height", pixels 500)
-          ]
+    div [ Attr.id "editor",
+          Attr.class "editor"
         ] 
     [ ]
 
-visualEditor : Html Msg
-visualEditor = 
-    svg [ SvgAttr.viewBox "0 0 100 100"
-        , SvgAttr.width <| pixels 350
+visualEditor : List Models.Point -> Html Msg
+visualEditor points = 
+    svg [ SvgAttr.viewBox "0 0 450 450"
         , SvgAttr.class "visualEditor"
-        ]
-        [ circle [ SvgAttr.cx "50", SvgAttr.cy "50", 
-            SvgAttr.r "3", SvgAttr.fill "#0B79CE" ] []
-        ]
+        , onCanvasClick
+        ] 
+        <| drawDots points
 
+onCanvasClick : Svg.Attribute Msg
+onCanvasClick =
+  SvgEvent.on "click" (Decode.map Msg.CanvasClick Mouse.position)
 
+drawDots : List Models.Point -> List (Svg msg)
+drawDots points =
+    List.map
+    (\point -> 
+        let
+            (x, y) = point
+            cx = toString <| x - 470
+            cy = toString <| y - 45
+        in
+            circle [ SvgAttr.cx cx, SvgAttr.cy cy, 
+                SvgAttr.r "3", SvgAttr.fill "#0B79CE" ] []
+    ) points
 
-pixels : Int -> String
-pixels n = toString n ++ "px"

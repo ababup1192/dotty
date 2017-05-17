@@ -2,7 +2,7 @@ let editor;
 const markers = [];
 const fontSize = 10;
 
-function initialize(app) {
+const initialize = (app) => {
     require('brace/mode/javascript');
     require('brace/theme/chrome');
 
@@ -14,39 +14,28 @@ function initialize(app) {
     editor.setOption("dragEnabled", true); // true by default anyway
     editor.setOption("highlightActiveLine", false);
     editor.setShowPrintMargin(false);
+    editor.getSession().setUseWrapMode(true);
     editor.getSession().setUseSoftTabs(true);
     editor.getSession().setTabSize(2);
 
-    
     editor.on("input", () => {
         const info = editor.getSession().getDocument().getValue();
-        app.ports.receiveEditorState.send({code: info});
+        app.ports.receiveEditorState.send({ code: info });
     });
+};
 
-    /*
-    editor.selection.on("changeCursor", () => {
-        const info = getEditorState();
-        app.ports.receiveEditorState.send(info);
-    });
-
-    editor.getSession().on("changeScrollTop", () => {
-        const info = getEditorState();
-        app.ports.receiveEditorState.send(info);
-
-    });
-    editor.getSession().on("changeScrollLeft", () => {
-        const info = getEditorState();
-        app.ports.receiveEditorState.send(info);
-    });
-    */
-}
+const displayCode = (code) =>
+    editor.getSession().setValue(code, 0)
 
 export const subscribe = (app) => {
     app.ports.aceCodeBoxCmd.subscribe((aceCmd) => {
-        var message = aceCmd.message;
+        const message = aceCmd.message;
+        const code = aceCmd.model.code;
 
         if (message === "initializeAndDisplay") {
             initialize(app);
+        } else if (message === "displayCode") {
+            displayCode(code)
         }
     });
 };

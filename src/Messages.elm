@@ -1,7 +1,8 @@
 module Messages exposing (..)
 
 import AceCodeBox
+import Mouse
 
--- Message
 type Msg = UpdateCode AceCodeBox.AceCodeBoxInfo
+         | CanvasClick Mouse.Position
 

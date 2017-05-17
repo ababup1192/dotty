@@ -3,11 +3,20 @@
 #main {
     padding: 20px;
 }  
+
+.editor {
+    position: relative;
+    width: 450px;
+    height: 500px;
+}
+
 .hybridEditor {
+    width: 100%;
     display: flex;
     border: 1px solid #000000;
 }
 
 .visualEditor {
+    width: 450px;
     border-left: 1px solid #000000;
 }
