@@ -6,7 +6,7 @@ const initialize = (app) => {
     require('brace/mode/javascript');
     require('brace/theme/chrome');
 
-    editor = ace.edit("editor");
+    editor = ace.edit("textEditor");
     editor.$blockScrolling = Infinity;
     editor.setTheme("ace/theme/chrome");
     editor.setFontSize(fontSize);

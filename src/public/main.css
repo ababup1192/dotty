@@ -1,22 +1,22 @@
 @import url(~sanitize.css/sanitize.css);
-
 #main {
     padding: 20px;
-}  
+}
 
-.editor {
+.hybridEditor {
+    display: flex;
+    width: 900px;
+    border: 1px solid #000000;
+}
+
+.textEditor {
     position: relative;
     width: 450px;
     height: 500px;
 }
 
-.hybridEditor {
-    width: 100%;
-    display: flex;
-    border: 1px solid #000000;
-}
-
 .visualEditor {
+    position: relative;
     width: 450px;
     border-left: 1px solid #000000;
 }
