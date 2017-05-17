@@ -16,8 +16,8 @@ init =
 initCmd : Cmd Msg
 initCmd = 
     Cmd.batch
-        [ AceCodeBox.initializeAndDisplay initialModel
-        ]
+    [ AceCodeBox.initializeAndDisplay initialModel
+    ]
 
 -- Subscriptions
 subscriptions : Model -> Sub Msg
