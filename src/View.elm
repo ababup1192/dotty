@@ -29,8 +29,6 @@ textEditor =
 visualEditor : List Models.Point -> Html Msg
 visualEditor points = 
     svg [ SvgAttr.viewBox "0 0 450 450"
-        , SvgAttr.x "0px"
-        , SvgAttr.y "0px"
         , SvgAttr.class "visualEditor"
         , onCanvasClick
         ] 
