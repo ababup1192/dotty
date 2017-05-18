@@ -44,8 +44,8 @@ drawDots =
     (\point -> 
         let
             (x, y) = point
-            cx = toString <| x - 470
-            cy = toString <| y - 45
+            cx = toString <| x
+            cy = toString <| y - 25
         in
             circle [ SvgAttr.cx cx, SvgAttr.cy cy
                    , SvgAttr.r "3", SvgAttr.fill "#0B79CE" 

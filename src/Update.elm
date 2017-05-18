@@ -15,7 +15,7 @@ update msg model =
         Msg.CanvasClick position ->
             let 
                 { x, y } = position
-                newPoints = model.points ++ [(x, y)]
+                newPoints = model.points ++ [(x - 470, y - 20)]
                 newModel = { model
                     | points = newPoints
                     , code = toString newPoints
