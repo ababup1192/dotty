@@ -10,6 +10,7 @@ import Json.Decode as Decode
 
 import Messages as Msg exposing (Msg)
 import Models exposing (Model)
+import AppConstant
 
 view : Model -> Html Msg
 view ( { code, points } as model) =
@@ -44,8 +45,8 @@ drawDots =
     (\point -> 
         let
             (x, y) = point
-            cx = toString <| x - 470
-            cy = toString <| y - 45
+            cx = toString <| x - AppConstant.viewDiffX
+            cy = toString <| y - AppConstant.viewDiffY
         in
             circle [ SvgAttr.cx cx, SvgAttr.cy cy
                    , SvgAttr.r "3", SvgAttr.fill "#0B79CE" 
