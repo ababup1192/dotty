@@ -5,6 +5,7 @@ import Messages as Msg exposing (Msg)
 import AceCodeBox
 import PointsParser.Ast exposing (Ast(NList, NPoint, Root))
 import PointsParser.Parser exposing (parse)
+import AppConstant
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -15,7 +16,8 @@ update msg model =
         Msg.CanvasClick position ->
             let 
                 { x, y } = position
-                newPoints = model.points ++ [(x - 470, y - 20)]
+                newPosition = [(x - AppConstant.diffX, y - AppConstant.diffY)]
+                newPoints = model.points ++ newPosition
                 newModel = { model
                     | points = newPoints
                     , code = toString newPoints
