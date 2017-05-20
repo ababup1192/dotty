@@ -56,8 +56,8 @@ parse2points prevPoints code =
 ast2value : Ast -> Result () (List Point)
 ast2value ast =
     case ast of
-        Root nlist ->
-            nlist2value nlist
+        Root root ->
+            nlist2value root.ast
 
         _ ->
             Err ()
@@ -66,7 +66,7 @@ ast2value ast =
 nlist2value : Ast -> Result () (List Point)
 nlist2value ast =
     case ast of
-        NList npoints ->
+        NList nlist ->
             let
                 f npoint acc =
                     case npoint2value npoint of
@@ -76,7 +76,7 @@ nlist2value ast =
                         _ ->
                             Err ()
             in
-                List.foldl f (Ok []) npoints
+                List.foldl f (Ok []) nlist.asts
 
         _ ->
             Err ()
@@ -85,8 +85,8 @@ nlist2value ast =
 npoint2value : Ast -> Result () Point
 npoint2value ast =
     case ast of
-        NPoint x y ->
-            Ok ( x, y )
+        NPoint point ->
+            Ok ( point.x, point.y )
 
         _ ->
             Err ()
