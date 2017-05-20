@@ -10,12 +10,14 @@ type alias ParseResult =
 
 parse : String -> ParseResult
 parse text =
-    run (dotsParser [ 0 ]) text
+    run
+        (dotsParser [])
+        text
 
 
 dotsParser : Id -> Parser Ast
 dotsParser id =
-    succeed (\ast -> rootNode (List.reverse id) [ ast ])
+    succeed (\ast -> rootNode [ ast ])
         |= expression (0 :: id)
         |. end
 

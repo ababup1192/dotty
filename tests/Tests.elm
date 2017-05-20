@@ -24,10 +24,10 @@ parserTest =
     describe "DotsParser.Parser Test" <|
         [ "parse [(1, 2)]"
             => parse "[(1, 2)]"
-            === (Ok <| rootNode [ 0 ] [ listNode [ 0, 0 ] [ pointNode [ 0, 0, 0 ] [] { x = 1, y = 2 } ] ])
+            === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
         , "parse [(1, 2), (3, 4)]"
             => parse "[(1, 2), (3, 4)]"
-            === (Ok <| rootNode [ 0 ] [ listNode [ 0, 0 ] [ pointNode [ 0, 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 0, 1 ] [] { x = 3, y = 4 } ] ])
+            === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
 
         --  , "parse [(1, 2), (3, 4)]" =>
         --      parse "[(1, 2), (3, 4)]" === (Ok <| Root {info = {id = 0}, ast = (NList {info = {id = 1}, asts = [NPoint {info = {id = 2}, x = 1, y = 2}, NPoint {info = {id = 3}, x = 3, y = 4}]})})

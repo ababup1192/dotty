@@ -36,7 +36,7 @@ type alias Ast =
 
 initialAst : Ast
 initialAst =
-    Tree { id = [ 0 ], data = NRoot } []
+    Tree { id = [], data = NRoot } []
 
 
 zipperelize : Ast -> Zipper NodeInfo
@@ -44,9 +44,9 @@ zipperelize ast =
     ( ast, [] )
 
 
-rootNode : Id -> Forest NodeInfo -> Ast
-rootNode id children =
-    Tree { id = id, data = NRoot } children
+rootNode : Forest NodeInfo -> Ast
+rootNode children =
+    Tree { id = [], data = NRoot } children
 
 
 listNode : Id -> Forest NodeInfo -> Ast
