@@ -12,8 +12,12 @@ type alias Id =
     List Index
 
 
+type alias Point =
+    { x : Int, y : Int }
+
+
 type NodeData
-    = NPoint { x : Int, y : Int }
+    = NPoint Point
     | NList
     | NRoot
 
@@ -22,16 +26,20 @@ type alias Identified a =
     { a | id : Id }
 
 
-type alias NodeInfo =
+type alias NodeDataWithId =
     Identified { data : NodeData }
 
 
-type alias ZipperAst =
-    Zipper NodeInfo
-
-
 type alias Ast =
-    Tree NodeInfo
+    Tree NodeDataWithId
+
+
+type alias NForest =
+    Forest NodeDataWithId
+
+
+type alias ZipperAst =
+    Zipper NodeDataWithId
 
 
 initialAst : Ast
@@ -39,22 +47,22 @@ initialAst =
     Tree { id = [], data = NRoot } []
 
 
-zipperelize : Ast -> Zipper NodeInfo
+zipperelize : Ast -> ZipperAst
 zipperelize ast =
     ( ast, [] )
 
 
-rootNode : Forest NodeInfo -> Ast
+rootNode : NForest -> Ast
 rootNode children =
     Tree { id = [], data = NRoot } children
 
 
-listNode : Id -> Forest NodeInfo -> Ast
+listNode : Id -> NForest -> Ast
 listNode id children =
     Tree { id = id, data = NList } children
 
 
-pointNode : Id -> Forest NodeInfo -> { x : Int, y : Int } -> Ast
+pointNode : Id -> NForest -> Point -> Ast
 pointNode id children point =
     Tree { id = id, data = NPoint point } children
 
