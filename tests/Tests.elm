@@ -1,7 +1,7 @@
 module Tests exposing (..)
 
 -- Test modules
-import PointsParser.Ast exposing (Ast(NPoint, NList, Root))
+import PointsParser.Ast exposing (..)
 import PointsParser.Parser exposing (dotsParser, parse)
 --import PointsParser.Unparser exposing (toAst, unparse, unparseAst)
 import Test exposing (..)
@@ -18,11 +18,14 @@ parserTest : Test
 parserTest =
   describe "DotsParser.Parser Test" <| [
     "parse [(1, 2)]" =>
-      parse "[(1, 2)]" === (Ok <| Root {info = {id = 0}, ast = (NList {info = {id = 1}, asts = [NPoint {info = {id = 2}, x = 1, y = 2}]})})
+      parse "[(1, 2)]" === (Ok <| rootNode [0] [listNode [0, 0] [pointNode [0, 0, 0] [] {x = 1, y = 2}]])
 
 
   , "parse [(1, 2), (3, 4)]" =>
-      parse "[(1, 2), (3, 4)]" === (Ok <| Root {info = {id = 0}, ast = (NList {info = {id = 1}, asts = [NPoint {info = {id = 2}, x = 1, y = 2}, NPoint {info = {id = 3}, x = 3, y = 4}]})})
+      parse "[(1, 2), (3, 4)]" === (Ok <| rootNode [0] [listNode [0, 0] [pointNode [0, 0, 0] [] {x = 1, y = 2}, pointNode [0, 0, 1] [] {x = 3, y = 4}]])
+
+--  , "parse [(1, 2), (3, 4)]" =>
+--      parse "[(1, 2), (3, 4)]" === (Ok <| Root {info = {id = 0}, ast = (NList {info = {id = 1}, asts = [NPoint {info = {id = 2}, x = 1, y = 2}, NPoint {info = {id = 3}, x = 3, y = 4}]})})
 --
 --  , "parse [(1, 2), (3, 4)]" =>
 --      parse "[(1, 2), (3, 4)]" === (Ok <| Root <| NList [NPoint 1 2, NPoint 3 4])

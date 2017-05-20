@@ -1,7 +1,7 @@
 module PointsParser.Parser exposing (..)
 
 import Parser exposing (Error, Parser, end, fail, ignore, int, oneOf, repeat, run, succeed, symbol, zeroOrMore, (|.), (|=))
-import PointsParser.Ast exposing (Ast(NList, NPoint, Root), Id)
+import PointsParser.Ast exposing (..)
 
 
 type alias ParseResult =
@@ -10,27 +10,27 @@ type alias ParseResult =
 
 parse : String -> ParseResult
 parse text =
-    run (dotsParser 0) text
+    run (dotsParser [0]) text
 
 
 dotsParser : Id -> Parser Ast
 dotsParser id =
-    succeed (\ast -> Root {info = {id = id}, ast = ast})
-        |= expression (id + 1)
+    succeed (\ast -> rootNode (List.reverse id) [ast])
+        |= expression (0 :: id)
         |. end
 
 
 expression : Id -> Parser Ast
 expression id =
     oneOf
-        [ point id
-        , list id
+        [ point <| id
+        , list <| id
         ]
 
 
 point : Id -> Parser Ast
 point id =
-    succeed (\x y -> NPoint {info = {id = id}, x = x, y = y})
+    succeed (\x y -> pointNode (List.reverse id) [] {x = x, y = y})
         |. symbol "("
         |. spaces
         |= int
@@ -44,10 +44,11 @@ point id =
 
 list : Id -> Parser Ast
 list id =
-    succeed (\asts -> NList {info = {id = id}, asts = asts})
+    succeed (\asts -> listNode (List.reverse id) asts)
         |. symbol "["
         |. spaces
-        |= oneOf [ emptyList, oneOrMoreList <| id + 1 ]
+        |= oneOf [ emptyList, oneOrMoreList id ]
+
 
 -- There are ID required functions and ID NON required functions.
 emptyList : Parser (List Ast)
@@ -59,18 +60,18 @@ emptyList =
 oneOrMoreList : Id -> Parser (List Ast)
 oneOrMoreList id =
     let
-        assignIdIfNPoint id ast =
-            case ast of
+        assignIdIfNPoint index ast =
+            case data ast of
                 NPoint point ->
-                    NPoint {point| info = {id = id}}
+                    pointNode (List.reverse <| index :: id) [] point
 
                 _ -> ast
 
         assignId asts =
-            List.foldl (\ast (acc, id_) -> ((assignIdIfNPoint id_ ast) :: acc, id_ + 1)) ([], id) asts
+            List.foldl (\ast (acc, index) -> ((assignIdIfNPoint index ast) :: acc, index + 1)) ([], 0) asts
     in
     succeed (\hed oth -> List.reverse << Tuple.first << assignId <| hed :: oth)
-        |= point -1
+        |= point []
         |. spaces
         |= repeat zeroOrMore listHelper
         |. spaces
@@ -82,7 +83,7 @@ listHelper =
     succeed identity
         |. symbol ","
         |. spaces
-        |= point -1
+        |= point []
         |. spaces
 
 
