@@ -16,6 +16,7 @@ all : Test
 all =
     describe "PointsParser module Test" <|
         [ parserTest
+        , updatePointAstTest
         ]
 
 
@@ -28,22 +29,30 @@ parserTest =
         , "parse [(1, 2), (3, 4)]"
             => parse "[(1, 2), (3, 4)]"
             === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
+        ]
 
-        --  , "parse [(1, 2), (3, 4)]" =>
-        --      parse "[(1, 2), (3, 4)]" === (Ok <| Root {info = {id = 0}, ast = (NList {info = {id = 1}, asts = [NPoint {info = {id = 2}, x = 1, y = 2}, NPoint {info = {id = 3}, x = 3, y = 4}]})})
-        --
-        --  , "parse [(1, 2), (3, 4)]" =>
-        --      parse "[(1, 2), (3, 4)]" === (Ok <| Root <| NList [NPoint 1 2, NPoint 3 4])
-        --
-        --  , "parse []" =>
-        --      parse "[]" === (Ok <| Root <| NList [])
-        --
-        --  , "result equals between [(1,2),(3,4)] and [ ( 1 , 2 ) , ( 3 , 4 ) ]" =>
-        --      parse "[(1,2),(3,4)]" === parse "[ ( 1 , 2 ) , ( 3 , 4 ) ]"
+
+updatePointAstTest : Test
+updatePointAstTest =
+    describe "DotsParser.Ast Test" <|
+        [ "[(1, 2), (3, 4)] -> [(1, 2), (5, 6)]"
+            => (parse "[(1, 2), (3, 4)]" |> Result.map (updatePointAst [ 0, 1 ] { x = 5, y = 6 }))
+            === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 1 ] [] { x = 5, y = 6 } ] ])
         ]
 
 
 
+--  , "parse [(1, 2), (3, 4)]" =>
+--      parse "[(1, 2), (3, 4)]" === (Ok <| Root {info = {id = 0}, ast = (NList {info = {id = 1}, asts = [NPoint {info = {id = 2}, x = 1, y = 2}, NPoint {info = {id = 3}, x = 3, y = 4}]})})
+--
+--  , "parse [(1, 2), (3, 4)]" =>
+--      parse "[(1, 2), (3, 4)]" === (Ok <| Root <| NList [NPoint 1 2, NPoint 3 4])
+--
+--  , "parse []" =>
+--      parse "[]" === (Ok <| Root <| NList [])
+--
+--  , "result equals between [(1,2),(3,4)] and [ ( 1 , 2 ) , ( 3 , 4 ) ]" =>
+--      parse "[(1,2),(3,4)]" === parse "[ ( 1 , 2 ) , ( 3 , 4 ) ]"
 --unparserTest : Test
 --unparserTest =
 --  describe "DotsParser.Unparser Test" <| [
