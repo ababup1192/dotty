@@ -4,41 +4,59 @@ import MultiwayTree exposing (Forest, Tree(..))
 import MultiwayTreeZipper exposing (Zipper)
 
 
-type alias Index = Int
+type alias Index =
+    Int
 
-type alias Id = List Index
+
+type alias Id =
+    List Index
+
 
 type NodeData
-    = NPoint {x: Int, y: Int}
+    = NPoint { x : Int, y : Int }
     | NList
     | NRoot
 
-type alias Identified a = {a| id: Id}
 
-type alias NodeInfo = Identified {data: NodeData}
+type alias Identified a =
+    { a | id : Id }
 
-type alias ZipperAst = Zipper NodeInfo
 
-type alias Ast = Tree NodeInfo
+type alias NodeInfo =
+    Identified { data : NodeData }
+
+
+type alias ZipperAst =
+    Zipper NodeInfo
+
+
+type alias Ast =
+    Tree NodeInfo
+
 
 initialAst : Ast
-initialAst = Tree {id = [0], data = NRoot} []
+initialAst =
+    Tree { id = [ 0 ], data = NRoot } []
 
 
 zipperelize : Ast -> Zipper NodeInfo
-zipperelize ast = (ast, [])
+zipperelize ast =
+    ( ast, [] )
 
 
 rootNode : Id -> Forest NodeInfo -> Ast
-rootNode id children = Tree {id = id, data = NRoot} children
+rootNode id children =
+    Tree { id = id, data = NRoot } children
 
 
 listNode : Id -> Forest NodeInfo -> Ast
-listNode id children = Tree {id = id, data = NList} children
+listNode id children =
+    Tree { id = id, data = NList } children
 
 
-pointNode : Id -> Forest NodeInfo -> {x: Int, y: Int} -> Ast
-pointNode id children point = Tree {id = id, data = NPoint point} children
+pointNode : Id -> Forest NodeInfo -> { x : Int, y : Int } -> Ast
+pointNode id children point =
+    Tree { id = id, data = NPoint point } children
 
 
 data : Ast -> NodeData

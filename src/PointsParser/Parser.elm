@@ -10,12 +10,12 @@ type alias ParseResult =
 
 parse : String -> ParseResult
 parse text =
-    run (dotsParser [0]) text
+    run (dotsParser [ 0 ]) text
 
 
 dotsParser : Id -> Parser Ast
 dotsParser id =
-    succeed (\ast -> rootNode (List.reverse id) [ast])
+    succeed (\ast -> rootNode (List.reverse id) [ ast ])
         |= expression (0 :: id)
         |. end
 
@@ -30,7 +30,7 @@ expression id =
 
 point : Id -> Parser Ast
 point id =
-    succeed (\x y -> pointNode (List.reverse id) [] {x = x, y = y})
+    succeed (\x y -> pointNode (List.reverse id) [] { x = x, y = y })
         |. symbol "("
         |. spaces
         |= int
@@ -50,7 +50,10 @@ list id =
         |= oneOf [ emptyList, oneOrMoreList id ]
 
 
+
 -- There are ID required functions and ID NON required functions.
+
+
 emptyList : Parser (List Ast)
 emptyList =
     succeed []
@@ -65,17 +68,18 @@ oneOrMoreList id =
                 NPoint point ->
                     pointNode (List.reverse <| index :: id) [] point
 
-                _ -> ast
+                _ ->
+                    ast
 
         assignId asts =
-            List.foldl (\ast (acc, index) -> ((assignIdIfNPoint index ast) :: acc, index + 1)) ([], 0) asts
+            List.foldl (\ast ( acc, index ) -> ( (assignIdIfNPoint index ast) :: acc, index + 1 )) ( [], 0 ) asts
     in
-    succeed (\hed oth -> List.reverse << Tuple.first << assignId <| hed :: oth)
-        |= point []
-        |. spaces
-        |= repeat zeroOrMore listHelper
-        |. spaces
-        |. symbol "]"
+        succeed (\hed oth -> List.reverse << Tuple.first << assignId <| hed :: oth)
+            |= point []
+            |. spaces
+            |= repeat zeroOrMore listHelper
+            |. spaces
+            |. symbol "]"
 
 
 listHelper : Parser Ast
