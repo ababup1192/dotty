@@ -1,7 +1,8 @@
 module PointsParser.Ast exposing (..)
 
 import MultiwayTree exposing (Forest, Tree(..))
-import MultiwayTreeZipper exposing (Zipper)
+import MultiwayTreeZipper as Zipper exposing (Zipper)
+import Debug
 
 
 type alias Index =
@@ -72,3 +73,49 @@ data ast =
     case ast of
         Tree info _ ->
             info.data
+
+
+updatePoint : Point -> NodeDataWithId -> NodeDataWithId
+updatePoint point n =
+    { n | data = NPoint point }
+
+
+(&>) : Maybe a -> (a -> Maybe b) -> Maybe b
+(&>) =
+    flip Maybe.andThen
+
+
+
+-- TODO: Refactor
+
+
+updatePointAst : Id -> Point -> Ast -> Ast
+updatePointAst id point ast =
+    let
+        mzipper =
+            ast
+                |> zipperelize
+                |> Just
+                |> applyCommands (toWalkCommands id)
+    in
+        let
+            updatedMZipper =
+                mzipper
+                    &> Zipper.updateDatum (updatePoint point)
+                    &> Zipper.goToRoot
+        in
+            let
+                ( updatedAst, _ ) =
+                    Maybe.withDefault ( ast, [] ) updatedMZipper
+            in
+                updatedAst
+
+
+toWalkCommands : Id -> List (ZipperAst -> Maybe ZipperAst)
+toWalkCommands id =
+    List.map Zipper.goToChild id
+
+
+applyCommands : List (ZipperAst -> Maybe ZipperAst) -> Maybe ZipperAst -> Maybe ZipperAst
+applyCommands commands mzipper =
+    List.foldl (\cmd acc -> Maybe.andThen cmd acc) mzipper commands
