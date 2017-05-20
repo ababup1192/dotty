@@ -19,14 +19,16 @@ type Ast
     | Root {info: NodeInfo, ast: Ast}
 
 
-showAst : Ast -> String
-showAst ast =
+toString : Ast -> String
+toString ast =
     case ast of
         NPoint {x, y} ->
             "NPoint " ++ toString x ++ " " ++ toString y
 
         NList {asts} ->
-            "NList [" ++ List.foldl (\a acc -> acc ++ "(" ++ showAst a ++ "),") "" asts ++ "]"
+            "NList [" ++ List.foldl (\a acc -> acc ++ "(" ++ toString a ++ "),") "" asts ++ "]"
 
         Root {ast} ->
-            "Root (" ++ showAst ast ++ ")"
+            "Root (" ++ toString ast ++ ")"
+
+
