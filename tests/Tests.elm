@@ -36,7 +36,7 @@ updatePointAstTest : Test
 updatePointAstTest =
     describe "DotsParser.Ast Test" <|
         [ "[(1, 2), (3, 4)] -> [(1, 2), (5, 6)]"
-            => (parse "[(1, 2)]" |> Result.map (updatePointAst [ 0, 1 ] { x = 5, y = 6 }))
+            => (parse "[(1, 2), (3, 4)]" |> Result.map (updatePointAst [ 0, 1 ] { x = 5, y = 6 }))
             === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 1 ] [] { x = 5, y = 6 } ] ])
         ]
 
