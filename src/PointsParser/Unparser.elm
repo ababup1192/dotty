@@ -1,6 +1,7 @@
 module PointsParser.Unparser exposing (..)
 
-import PointsParser.Ast exposing (Ast(NPoint, NList, Root))
+import PointsParser.Ast exposing (Ast, NodeData(NPoint, NList, NRoot))
+import MultiwayTree as MT
 
 
 type alias Point =
@@ -11,40 +12,44 @@ type alias ParsedValue =
     List Point
 
 
-unparse : ParsedValue -> Result String String
-unparse =
-    unparseAst << toAst
 
-
-toAst : ParsedValue -> Ast
-toAst points =
-    let
-        toNDot ( x, y ) =
-            NPoint x y
-    in
-        Root <| NList <| List.map toNDot points
+-- unparse : ParsedValue -> Result String String
+-- unparse =
+--    unparseAst << toAst
+-- toAst : ParsedValue -> Ast
+-- toAst points =
+--    let
+--        toNDot ( x, y ) =
+--            NPoint x y
+--    in
+--        Root <| NList <| List.map toNDot points
 
 
 unparseAst : Ast -> Result String String
-unparseAst ast =
-    case ast of
-        Root n ->
-            list n
+unparseAst (MT.Tree { id, data } children) =
+    case data of
+        NRoot ->
+            case children of
+                [ l ] ->
+                    list l
+
+                _ ->
+                    Err "Children must be One node."
 
         _ ->
             Err "Ast root must be Root."
 
 
 list : Ast -> Result String String
-list ast =
-    case ast of
-        NList npoints ->
+list (MT.Tree { id, data } children) =
+    case data of
+        NList ->
             let
                 concat acc p =
                     Result.map (\acc_ -> p ++ acc_) acc
 
                 points =
-                    List.foldl (\p acc -> Result.andThen (concat acc) p) (Ok "") <| List.map point npoints
+                    List.foldl (\p acc -> Result.andThen (concat acc) p) (Ok "") <| List.map point children
             in
                 Result.map (\points_ -> "[" ++ points_ ++ "]") points
 
@@ -53,9 +58,9 @@ list ast =
 
 
 point : Ast -> Result String String
-point ast =
-    case ast of
-        NPoint x y ->
+point (MT.Tree { id, data } children) =
+    case data of
+        NPoint { x, y } ->
             let
                 x_ =
                     toString x
