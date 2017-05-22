@@ -1,10 +1,10 @@
 module Update exposing (..)
 
-import Models exposing (Model, Point)
+import Models exposing (Model)
 import Messages as Msg exposing (Msg)
 import AceCodeBox
 import PointsParser.Ast exposing (Ast(NList, NPoint, Root))
-import PointsParser.Parser exposing (parse)
+import PointsParser.Parser as P
 import AppConstant
 
 
@@ -12,7 +12,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Msg.UpdateCode aceCodeBoxInfo ->
-            ( { model | code = aceCodeBoxInfo.code, points = parse2points model.points aceCodeBoxInfo.code }, Cmd.none )
+            let
+              newAst Result.withDefault model.ast <| P.parse aceCodeBoxInfo.code
+            in
+            ( { model | code = aceCodeBoxInfo.code, ast = newAst }, Cmd.none )
 
         Msg.CanvasClick position ->
             let

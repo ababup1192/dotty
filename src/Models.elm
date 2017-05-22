@@ -1,18 +1,16 @@
 module Models exposing (..)
 
-
-type alias Point =
-    ( Int, Int )
+import PointsParser.Ast exposing (Ast, initialAst)
 
 
 type alias Model =
     { code : String
-    , points : List Point
+    , ast : Ast
     }
 
 
 initialModel : Model
 initialModel =
     { code = "[]"
-    , points = []
+    , ast = initialAst
     }

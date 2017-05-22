@@ -48,9 +48,9 @@ initialAst =
     Tree { id = [], data = NRoot } []
 
 
-zipperelize : Ast -> ZipperAst
+zipperelize : Ast -> Maybe ZipperAst
 zipperelize ast =
-    ( ast, [] )
+    Just ( ast, [] )
 
 
 rootNode : NForest -> Ast
@@ -75,8 +75,8 @@ data ast =
             info.data
 
 
-updatePoint : Point -> NodeDataWithId -> NodeDataWithId
-updatePoint point n =
+updatePointHelper : Point -> NodeDataWithId -> NodeDataWithId
+updatePointHelper point n =
     { n | data = NPoint point }
 
 
@@ -89,19 +89,58 @@ updatePoint point n =
 -- TODO: Refactor
 
 
-updatePointAst : Id -> Point -> Ast -> Ast
-updatePointAst id point ast =
+insertPoint : Point -> Ast -> Ast
+insertPoint point ast =
+    let
+        zipper =
+            ast
+                |> zipperelize
+
+        listNode =
+            zipper
+                &> Zipper.goToChild 0
+
+        lastChild =
+            listNode
+                &> Zipper.goToRightMostChild
+
+        newId =
+            Maybe.map Tuple.first lastChild
+                |> Maybe.andThen
+                    (\tree ->
+                        case tree of
+                            Tree node _ ->
+                                List.head <| List.reverse node.id
+                    )
+                |> Maybe.withDefault -1
+                |> (+) 1
+                |> List.singleton
+                |> (++) [ 0 ]
+
+        insertedMZipper =
+            listNode
+                &> Zipper.appendChild (pointNode newId [] point)
+                &> Zipper.goToRoot
+    in
+        let
+            ( insertedAst, _ ) =
+                Maybe.withDefault ( ast, [] ) insertedMZipper
+        in
+            insertedAst
+
+
+updatePoint : Id -> Point -> Ast -> Ast
+updatePoint id point ast =
     let
         mzipper =
             ast
                 |> zipperelize
-                |> Just
                 |> applyCommands (toWalkCommands id)
     in
         let
             updatedMZipper =
                 mzipper
-                    &> Zipper.updateDatum (updatePoint point)
+                    &> Zipper.updateDatum (updatePointHelper point)
                     &> Zipper.goToRoot
         in
             let

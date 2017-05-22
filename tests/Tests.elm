@@ -13,8 +13,9 @@ all : Test
 all =
     describe "PointsParser module Test" <|
         [ parserTest
-        , updatePointAstTest
+        , updatePointTest
         , unparserTest
+        , insertPointTest
         ]
 
 
@@ -30,11 +31,28 @@ parserTest =
         ]
 
 
-updatePointAstTest : Test
-updatePointAstTest =
+insertPointTest : Test
+insertPointTest =
+    describe "DotsParser.Ast Test" <|
+        [ "[(1, 2), (3, 4)] -> [(1, 2), (3, 4), (5, 6)]"
+            => (parse "[(1, 2), (3, 4)]" |> Result.map (insertPoint { x = 5, y = 6 }))
+            === (Ok <|
+                    rootNode
+                        [ listNode [ 0 ]
+                            [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }
+                            , pointNode [ 0, 1 ] [] { x = 3, y = 4 }
+                            , pointNode [ 0, 2 ] [] { x = 5, y = 6 }
+                            ]
+                        ]
+                )
+        ]
+
+
+updatePointTest : Test
+updatePointTest =
     describe "DotsParser.Ast Test" <|
         [ "[(1, 2), (3, 4)] -> [(1, 2), (5, 6)]"
-            => (parse "[(1, 2), (3, 4)]" |> Result.map (updatePointAst [ 0, 1 ] { x = 5, y = 6 }))
+            => (parse "[(1, 2), (3, 4)]" |> Result.map (updatePoint [ 0, 1 ] { x = 5, y = 6 }))
             === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 1 ] [] { x = 5, y = 6 } ] ])
         ]
 
