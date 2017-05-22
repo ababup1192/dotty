@@ -3,9 +3,9 @@ module Update exposing (..)
 import Models exposing (Model)
 import Messages as Msg exposing (Msg)
 import AceCodeBox
-import PointsParser.Ast as Ast
-import PointsParser.Parser as P
-import PointsParser.Unparser as Unparser
+import DotsParser.Ast as Ast
+import DotsParser.Parser as P
+import DotsParser.Unparser as Unparser
 import AppConstant
 
 
@@ -28,7 +28,7 @@ update msg model =
                     { x = x - AppConstant.diffX, y = y - AppConstant.diffY }
 
                 newAst =
-                    Ast.insertPoint newPosition model.ast
+                    Ast.insertPosition newPosition model.ast
 
                 newCode =
                     Result.withDefault model.code (Unparser.unparse newAst)

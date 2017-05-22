@@ -1,6 +1,6 @@
 module Models exposing (..)
 
-import PointsParser.Ast exposing (Ast, initialAst)
+import DotsParser.Ast exposing (Ast, initialAst)
 
 
 type alias Model =

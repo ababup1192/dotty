@@ -10,7 +10,8 @@ import Json.Decode as Decode
 import Messages as Msg exposing (Msg)
 import Models exposing (Model)
 import AppConstant
-import PointsParser.Ast as Ast exposing (Ast, Point, ast2Points)
+import DotsParser.Ast as Ast exposing (Ast)
+import Mouse exposing (Position)
 
 
 view : Model -> Html Msg
@@ -41,7 +42,7 @@ visualEditor ast =
         ]
     <|
         drawDots <|
-            Ast.ast2Points ast
+            Ast.ast2Positions ast
 
 
 onCanvasClick : Svg.Attribute Msg
@@ -49,7 +50,7 @@ onCanvasClick =
     SvgEvent.on "click" (Decode.map Msg.CanvasClick Mouse.position)
 
 
-drawDots : List Point -> List (Svg msg)
+drawDots : List Position -> List (Svg msg)
 drawDots =
     List.map
         (\point ->
