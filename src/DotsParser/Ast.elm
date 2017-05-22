@@ -3,6 +3,7 @@ module DotsParser.Ast exposing (..)
 import MultiwayTree exposing (Forest, Tree(..))
 import MultiwayTreeZipper as Zipper exposing (Zipper)
 import Mouse exposing (Position)
+import Debug
 
 
 type alias Index =
@@ -140,8 +141,28 @@ updatePositionHelper position n =
     flip Maybe.andThen
 
 
+getPosition : Id -> Ast -> Maybe Position
+getPosition id ast =
+    let
+        mzipper =
+            ast
+                |> ast2MZipper
+                |> applyCommands (toWalkCommands id)
 
--- TODO: Refactor
+        mposition =
+            mzipper2MNodeDataId mzipper
+                |> Maybe.map .data
+                |> Maybe.andThen
+                    (\data ->
+                        case data of
+                            NPosition position ->
+                                Just position
+
+                            _ ->
+                                Nothing
+                    )
+    in
+        mposition
 
 
 insertPosition : Position -> Ast -> Ast

@@ -15,6 +15,7 @@ all =
         [ parserTest
         , updatePositionTest
         , unparserTest
+        , getPositionTest
         , insertPositionTest
         , ast2PositionsTest
         ]
@@ -29,6 +30,15 @@ parserTest =
         , "parse [(1, 2), (3, 4)]"
             => parse "[(1, 2), (3, 4)]"
             === (Ok <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
+        ]
+
+
+getPositionTest : Test
+getPositionTest =
+    describe "DotsParser.Ast Test" <|
+        [ "[(1, 2), (3, 4)] -> Just { x = 3, y = 4}]"
+            => (parse "[(1, 2), (3, 4)]" |> Result.map (getPosition [ 0, 1 ]))
+            === (Ok <| Just { x = 3, y = 4 })
         ]
 
 

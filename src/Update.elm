@@ -17,7 +17,7 @@ update msg model =
                 newAst =
                     Result.withDefault model.ast <| P.parse aceCodeBoxInfo.code
             in
-                ( { model | code = aceCodeBoxInfo.code, ast = newAst }, Cmd.none )
+                ( { model | code = aceCodeBoxInfo.code, ast = newAst, drag = Nothing }, Cmd.none )
 
         Msg.CanvasClick position ->
             let
@@ -37,8 +37,23 @@ update msg model =
                     { model
                         | ast = newAst
                         , code = newCode
+                        , drag = Nothing
                     }
             in
                 ( newModel
                 , AceCodeBox.displayCode newModel
                 )
+
+        Msg.DragStart xy id ->
+            { model
+                | drag = Just <| Models.Drag xy xy id
+            }
+
+        Msg.DragAt xy ->
+            let
+                newDrag =
+                    Maybe.map (\{ start, id } -> Models.Drag start xy id) model.drag
+            in
+                { model
+                    | drag = newDrag
+                }
