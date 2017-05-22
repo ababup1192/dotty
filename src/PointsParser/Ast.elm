@@ -48,13 +48,13 @@ initialAst =
     Tree { id = [], data = NRoot } []
 
 
-zipperelize : Ast -> Maybe ZipperAst
-zipperelize ast =
+ast2MZipper : Ast -> Maybe ZipperAst
+ast2MZipper ast =
     Just ( ast, [] )
 
 
-getAst : Maybe ZipperAst -> Ast
-getAst zipper =
+mzipper2Ast : Maybe ZipperAst -> Ast
+mzipper2Ast zipper =
     case zipper of
         Just ( ast, _ ) ->
             ast
@@ -63,48 +63,48 @@ getAst zipper =
             Debug.crash "getAst is Faild"
 
 
-getNode : Maybe ZipperAst -> Maybe NodeDataWithId
-getNode zipper =
+mzipper2MNodeDataId : Maybe ZipperAst -> Maybe NodeDataWithId
+mzipper2MNodeDataId mzipper =
     let
         (Tree nodeDataId _) =
-            getAst zipper
+            mzipper2Ast mzipper
     in
         Just nodeDataId
 
 
-getChildren : Maybe ZipperAst -> Maybe NForest
-getChildren zipper =
+node2NData : Ast -> NodeData
+node2NData (Tree nodeDataId _) =
+    nodeDataId.data
+
+
+mzipper2MNForest : Maybe ZipperAst -> Maybe NForest
+mzipper2MNForest mzipper =
     let
         (Tree _ children) =
-            getAst zipper
+            mzipper2Ast mzipper
     in
         Just children
 
 
-getPoints : Ast -> List Point
-getPoints ast =
+ast2Points : Ast -> List Point
+ast2Points ast =
     let
-        zipper =
+        mzipper =
             ast
-                |> zipperelize
+                |> ast2MZipper
 
-        listZipper =
-            zipper
+        listMZipper =
+            mzipper
                 &> Zipper.goToChild 0
 
         points =
-            case (getChildren listZipper) of
+            case (mzipper2MNForest listMZipper) of
                 Just children ->
                     List.foldl
                         (\ast acc ->
-                            case ast of
-                                Tree { id, data } [] ->
-                                    case data of
-                                        NPoint point ->
-                                            point :: acc
-
-                                        _ ->
-                                            acc
+                            case node2NData ast of
+                                NPoint point ->
+                                    point :: acc
 
                                 _ ->
                                     acc
@@ -157,30 +157,30 @@ updatePointHelper point n =
 insertPoint : Point -> Ast -> Ast
 insertPoint point ast =
     let
-        zipper =
+        mzipper =
             ast
-                |> zipperelize
+                |> ast2MZipper
 
-        listZipper =
-            zipper
+        listMZipper =
+            mzipper
                 &> Zipper.goToChild 0
 
         lastChild =
-            listZipper
+            listMZipper
                 &> Zipper.goToRightMostChild
 
         newId =
-            getNode lastChild
+            mzipper2MNodeDataId lastChild
                 |> Maybe.map .id
                 |> Maybe.andThen updateId
                 |> Maybe.withDefault []
 
         insertedMZipper =
-            listZipper
+            listMZipper
                 &> Zipper.appendChild (pointNode newId [] point)
                 &> Zipper.goToRoot
     in
-        getAst insertedMZipper
+        mzipper2Ast insertedMZipper
 
 
 updatePoint : Id -> Point -> Ast -> Ast
@@ -188,7 +188,7 @@ updatePoint id point ast =
     let
         mzipper =
             ast
-                |> zipperelize
+                |> ast2MZipper
                 |> applyCommands (toWalkCommands id)
     in
         let
@@ -197,7 +197,7 @@ updatePoint id point ast =
                     &> Zipper.updateDatum (updatePointHelper point)
                     &> Zipper.goToRoot
         in
-            getAst updatedMZipper
+            mzipper2Ast updatedMZipper
 
 
 toWalkCommands : Id -> List (ZipperAst -> Maybe ZipperAst)

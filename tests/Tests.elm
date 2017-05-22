@@ -16,7 +16,7 @@ all =
         , updatePointTest
         , unparserTest
         , insertPointTest
-        , getPointsTest
+        , ast2PointsTest
         ]
 
 
@@ -58,11 +58,11 @@ updatePointTest =
         ]
 
 
-getPointsTest : Test
-getPointsTest =
+ast2PointsTest : Test
+ast2PointsTest =
     describe "DotsParser.Ast Test" <|
         [ "[(1, 2), (3, 4)] -> [{x = 1, y = 2}, {x = 3, y = 4), {x = 5, y = 6}]"
-            => (parse "[(1, 2), (3, 4), (5, 6)]" |> Result.map getPoints)
+            => (parse "[(1, 2), (3, 4), (5, 6)]" |> Result.map ast2Points)
             === (Ok <| [ { x = 1, y = 2 }, { x = 3, y = 4 }, { x = 5, y = 6 } ])
         ]
 
