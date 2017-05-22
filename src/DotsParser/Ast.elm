@@ -1,8 +1,8 @@
-module PointsParser.Ast exposing (..)
+module DotsParser.Ast exposing (..)
 
 import MultiwayTree exposing (Forest, Tree(..))
 import MultiwayTreeZipper as Zipper exposing (Zipper)
-import Debug
+import Mouse exposing (Position)
 
 
 type alias Index =
@@ -13,12 +13,8 @@ type alias Id =
     List Index
 
 
-type alias Point =
-    { x : Int, y : Int }
-
-
 type NodeData
-    = NPoint Point
+    = NPosition Position
     | NList
     | NRoot
 
@@ -80,8 +76,8 @@ mzipper2MNForest mzipper =
         |> Maybe.map (\(Tree _ children) -> children)
 
 
-ast2Points : Ast -> List Point
-ast2Points ast =
+ast2Positions : Ast -> List Position
+ast2Positions ast =
     let
         mzipper =
             ast
@@ -91,14 +87,14 @@ ast2Points ast =
             mzipper
                 &> Zipper.goToChild 0
 
-        points =
+        positions =
             case (mzipper2MNForest listMZipper) of
                 Just children ->
                     List.foldl
                         (\ast acc ->
                             case node2NData ast of
-                                NPoint point ->
-                                    point :: acc
+                                NPosition position ->
+                                    position :: acc
 
                                 _ ->
                                     acc
@@ -109,7 +105,7 @@ ast2Points ast =
                 Nothing ->
                     []
     in
-        List.reverse points
+        List.reverse positions
 
 
 rootNode : NForest -> Ast
@@ -122,9 +118,9 @@ listNode id children =
     Tree { id = id, data = NList } children
 
 
-pointNode : Id -> NForest -> Point -> Ast
-pointNode id children point =
-    Tree { id = id, data = NPoint point } children
+positionNode : Id -> NForest -> Position -> Ast
+positionNode id children position =
+    Tree { id = id, data = NPosition position } children
 
 
 data : Ast -> NodeData
@@ -134,9 +130,9 @@ data ast =
             nodeDataId.data
 
 
-updatePointHelper : Point -> NodeDataWithId -> NodeDataWithId
-updatePointHelper point n =
-    { n | data = NPoint point }
+updatePositionHelper : Position -> NodeDataWithId -> NodeDataWithId
+updatePositionHelper position n =
+    { n | data = NPosition position }
 
 
 (&>) : Maybe a -> (a -> Maybe b) -> Maybe b
@@ -148,8 +144,8 @@ updatePointHelper point n =
 -- TODO: Refactor
 
 
-insertPoint : Point -> Ast -> Ast
-insertPoint point ast =
+insertPosition : Position -> Ast -> Ast
+insertPosition position ast =
     let
         mzipper =
             ast
@@ -171,14 +167,14 @@ insertPoint point ast =
 
         insertedMZipper =
             listMZipper
-                &> Zipper.appendChild (pointNode newId [] point)
+                &> Zipper.appendChild (positionNode newId [] position)
                 &> Zipper.goToRoot
     in
         Maybe.withDefault ast <| mzipper2Ast insertedMZipper
 
 
-updatePoint : Id -> Point -> Ast -> Ast
-updatePoint id point ast =
+updatePosition : Id -> Position -> Ast -> Ast
+updatePosition id position ast =
     let
         mzipper =
             ast
@@ -188,7 +184,7 @@ updatePoint id point ast =
         let
             updatedMZipper =
                 mzipper
-                    &> Zipper.updateDatum (updatePointHelper point)
+                    &> Zipper.updateDatum (updatePositionHelper position)
                     &> Zipper.goToRoot
         in
             Maybe.withDefault ast <| mzipper2Ast updatedMZipper

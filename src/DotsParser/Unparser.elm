@@ -1,28 +1,7 @@
-module PointsParser.Unparser exposing (..)
+module DotsParser.Unparser exposing (..)
 
-import PointsParser.Ast exposing (Ast, NodeData(NPoint, NList, NRoot))
+import DotsParser.Ast exposing (Ast, NodeData(NPosition, NList, NRoot))
 import MultiwayTree as MT
-
-
-type alias Point =
-    ( Int, Int )
-
-
-type alias ParsedValue =
-    List Point
-
-
-
--- unparse : ParsedValue -> Result String String
--- unparse =
---    unparseAst << toAst
--- toAst : ParsedValue -> Ast
--- toAst points =
---    let
---        toNDot ( x, y ) =
---            NPoint x y
---    in
---        Root <| NList <| List.map toNDot points
 
 
 unparse : Ast -> Result String String
@@ -72,7 +51,7 @@ list (MT.Tree { id, data } children) =
 point : Ast -> Result String String
 point (MT.Tree { id, data } children) =
     case data of
-        NPoint { x, y } ->
+        NPosition { x, y } ->
             let
                 x_ =
                     toString x

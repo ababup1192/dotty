@@ -4,19 +4,19 @@ module Tests exposing (..)
 
 import Test exposing (..)
 import TestExp exposing (..)
-import PointsParser.Ast exposing (..)
-import PointsParser.Parser exposing (dotsParser, parse)
-import PointsParser.Unparser exposing (unparse)
+import DotsParser.Ast exposing (..)
+import DotsParser.Parser exposing (dotsParser, parse)
+import DotsParser.Unparser exposing (unparse)
 
 
 all : Test
 all =
     describe "PointsParser module Test" <|
         [ parserTest
-        , updatePointTest
+        , updatePositionTest
         , unparserTest
-        , insertPointTest
-        , ast2PointsTest
+        , insertPositionTest
+        , ast2PositionsTest
         ]
 
 
@@ -25,44 +25,44 @@ parserTest =
     describe "DotsParser.Parser Test" <|
         [ "parse [(1, 2)]"
             => parse "[(1, 2)]"
-            === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
+            === (Ok <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
         , "parse [(1, 2), (3, 4)]"
             => parse "[(1, 2), (3, 4)]"
-            === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
+            === (Ok <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
         ]
 
 
-insertPointTest : Test
-insertPointTest =
+insertPositionTest : Test
+insertPositionTest =
     describe "DotsParser.Ast Test" <|
         [ "[(1, 2), (3, 4)] -> [(1, 2), (3, 4), (5, 6)]"
-            => (parse "[(1, 2), (3, 4)]" |> Result.map (insertPoint { x = 5, y = 6 }))
+            => (parse "[(1, 2), (3, 4)]" |> Result.map (insertPosition { x = 5, y = 6 }))
             === (Ok <|
                     rootNode
                         [ listNode [ 0 ]
-                            [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }
-                            , pointNode [ 0, 1 ] [] { x = 3, y = 4 }
-                            , pointNode [ 0, 2 ] [] { x = 5, y = 6 }
+                            [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }
+                            , positionNode [ 0, 1 ] [] { x = 3, y = 4 }
+                            , positionNode [ 0, 2 ] [] { x = 5, y = 6 }
                             ]
                         ]
                 )
         ]
 
 
-updatePointTest : Test
-updatePointTest =
+updatePositionTest : Test
+updatePositionTest =
     describe "DotsParser.Ast Test" <|
         [ "[(1, 2), (3, 4)] -> [(1, 2), (5, 6)]"
-            => (parse "[(1, 2), (3, 4)]" |> Result.map (updatePoint [ 0, 1 ] { x = 5, y = 6 }))
-            === (Ok <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 1 ] [] { x = 5, y = 6 } ] ])
+            => (parse "[(1, 2), (3, 4)]" |> Result.map (updatePosition [ 0, 1 ] { x = 5, y = 6 }))
+            === (Ok <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 5, y = 6 } ] ])
         ]
 
 
-ast2PointsTest : Test
-ast2PointsTest =
+ast2PositionsTest : Test
+ast2PositionsTest =
     describe "DotsParser.Ast Test" <|
         [ "[(1, 2), (3, 4)] -> [{x = 1, y = 2}, {x = 3, y = 4), {x = 5, y = 6}]"
-            => (parse "[(1, 2), (3, 4), (5, 6)]" |> Result.map ast2Points)
+            => (parse "[(1, 2), (3, 4), (5, 6)]" |> Result.map ast2Positions)
             === (Ok <| [ { x = 1, y = 2 }, { x = 3, y = 4 }, { x = 5, y = 6 } ])
         ]
 
@@ -74,10 +74,10 @@ unparserTest =
             => (unparse <| rootNode [ listNode [ 0 ] [] ])
             === (Ok "[]")
         , "unparseAst Root <| NList [NPoint 1 2]"
-            => (unparse <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
+            => (unparse <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
             === (Ok "[(1, 2)]")
         , "unparseAst Root <| NList [NPoint 1 2, 3 4]"
-            => (unparse <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 0 ] [] { x = 3, y = 4 } ] ])
+            => (unparse <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 0 ] [] { x = 3, y = 4 } ] ])
             === (Ok "[(1, 2), (3, 4)]")
         ]
 
