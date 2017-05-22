@@ -3,7 +3,7 @@ module Update exposing (..)
 import Models exposing (Model)
 import Messages as Msg exposing (Msg)
 import AceCodeBox
-import PointsParser.Ast as Ast exposing (Ast(NList, NPoint, Root))
+import PointsParser.Ast as Ast
 import PointsParser.Parser as P
 import PointsParser.Unparser as Unparser
 import AppConstant
@@ -31,7 +31,7 @@ update msg model =
                     Ast.insertPoint newPosition model.ast
 
                 newCode =
-                    Result.withDefault model.code Unparser.unparse newAst
+                    Result.withDefault model.code (Unparser.unparse newAst)
 
                 newModel =
                     { model

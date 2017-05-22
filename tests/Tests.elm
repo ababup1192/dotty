@@ -73,9 +73,12 @@ unparserTest =
         [ "unparseAst Root <| NList []"
             => (unparse <| rootNode [ listNode [ 0 ] [] ])
             === (Ok "[]")
-        , "unparseAst Root <| NList [NDot 1 2]"
+        , "unparseAst Root <| NList [NPoint 1 2]"
             => (unparse <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
             === (Ok "[(1, 2)]")
+        , "unparseAst Root <| NList [NPoint 1 2, 3 4]"
+            => (unparse <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 }, pointNode [ 0, 0 ] [] { x = 3, y = 4 } ] ])
+            === (Ok "[(1, 2), (3, 4)]")
         ]
 
 

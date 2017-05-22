@@ -49,9 +49,21 @@ list (MT.Tree { id, data } children) =
                     Result.map (\acc_ -> p ++ acc_) acc
 
                 points =
-                    List.foldl (\p acc -> Result.andThen (concat acc) p) (Ok "") <| List.map point children
+                    List.map point children
+                        |> List.foldl
+                            (\p acc ->
+                                case p of
+                                    Ok p_ ->
+                                        p_ :: acc
+
+                                    Err _ ->
+                                        acc
+                            )
+                            []
+                        |> List.reverse
+                        |> String.join ", "
             in
-                Result.map (\points_ -> "[" ++ points_ ++ "]") points
+                Ok <| "[" ++ points ++ "]"
 
         _ ->
             Err "Here must be NList."

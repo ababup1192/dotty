@@ -53,23 +53,20 @@ ast2MZipper ast =
     Just ( ast, [] )
 
 
-mzipper2Ast : Maybe ZipperAst -> Ast
+mzipper2Ast : Maybe ZipperAst -> Maybe Ast
 mzipper2Ast zipper =
     case zipper of
         Just ( ast, _ ) ->
-            ast
+            Just ast
 
         _ ->
-            Debug.crash "getAst is Faild"
+            Nothing
 
 
 mzipper2MNodeDataId : Maybe ZipperAst -> Maybe NodeDataWithId
 mzipper2MNodeDataId mzipper =
-    let
-        (Tree nodeDataId _) =
-            mzipper2Ast mzipper
-    in
-        Just nodeDataId
+    mzipper2Ast mzipper
+        |> Maybe.map (\(Tree nodeDataId _) -> nodeDataId)
 
 
 node2NData : Ast -> NodeData
@@ -79,11 +76,8 @@ node2NData (Tree nodeDataId _) =
 
 mzipper2MNForest : Maybe ZipperAst -> Maybe NForest
 mzipper2MNForest mzipper =
-    let
-        (Tree _ children) =
-            mzipper2Ast mzipper
-    in
-        Just children
+    mzipper2Ast mzipper
+        |> Maybe.map (\(Tree _ children) -> children)
 
 
 ast2Points : Ast -> List Point
@@ -180,7 +174,7 @@ insertPoint point ast =
                 &> Zipper.appendChild (pointNode newId [] point)
                 &> Zipper.goToRoot
     in
-        mzipper2Ast insertedMZipper
+        Maybe.withDefault ast <| mzipper2Ast insertedMZipper
 
 
 updatePoint : Id -> Point -> Ast -> Ast
@@ -197,7 +191,7 @@ updatePoint id point ast =
                     &> Zipper.updateDatum (updatePointHelper point)
                     &> Zipper.goToRoot
         in
-            mzipper2Ast updatedMZipper
+            Maybe.withDefault ast <| mzipper2Ast updatedMZipper
 
 
 toWalkCommands : Id -> List (ZipperAst -> Maybe ZipperAst)

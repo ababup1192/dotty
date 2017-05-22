@@ -10,7 +10,7 @@ import Json.Decode as Decode
 import Messages as Msg exposing (Msg)
 import Models exposing (Model)
 import AppConstant
-import PointsParser.Ast exposing (Ast, Point)
+import PointsParser.Ast as Ast exposing (Ast, Point, ast2Points)
 
 
 view : Model -> Html Msg
@@ -40,7 +40,8 @@ visualEditor ast =
         , onCanvasClick
         ]
     <|
-        drawDots ast
+        drawDots <|
+            Ast.ast2Points ast
 
 
 onCanvasClick : Svg.Attribute Msg
@@ -48,25 +49,25 @@ onCanvasClick =
     SvgEvent.on "click" (Decode.map Msg.CanvasClick Mouse.position)
 
 
-drawDots : Ast -> List (Svg msg)
+drawDots : List Point -> List (Svg msg)
 drawDots =
     List.map
         (\point ->
             let
-                ( x, y ) =
-                    point
-
                 cx =
-                    toString <| x - AppConstant.viewDiffX
+                    toString <| point.x - AppConstant.viewDiffX
 
                 cy =
-                    toString <| y - AppConstant.viewDiffY
+                    toString <| point.y - AppConstant.viewDiffY
+
+                c =
+                    circle
+                        [ SvgAttr.cx cx
+                        , SvgAttr.cy cy
+                        , SvgAttr.r "3"
+                        , SvgAttr.fill "#0B79CE"
+                        ]
+                        []
             in
-                circle
-                    [ SvgAttr.cx cx
-                    , SvgAttr.cy cy
-                    , SvgAttr.r "3"
-                    , SvgAttr.fill "#0B79CE"
-                    ]
-                    []
+                c
         )
