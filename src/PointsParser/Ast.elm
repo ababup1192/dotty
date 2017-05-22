@@ -53,6 +53,25 @@ zipperelize ast =
     Just ( ast, [] )
 
 
+getAst : Maybe ZipperAst -> Ast
+getAst zipper =
+    case zipper of
+        Just ( ast, _ ) ->
+            ast
+
+        _ ->
+            Debug.crash "getAst is Faild"
+
+
+getNode : Maybe ZipperAst -> Maybe NodeDataWithId
+getNode zipper =
+    let
+        (Tree nodeDataId _) =
+            getAst zipper
+    in
+        Just nodeDataId
+
+
 rootNode : NForest -> Ast
 rootNode children =
     Tree { id = [], data = NRoot } children
@@ -71,8 +90,8 @@ pointNode id children point =
 data : Ast -> NodeData
 data ast =
     case ast of
-        Tree info _ ->
-            info.data
+        Tree nodeDataId _ ->
+            nodeDataId.data
 
 
 updatePointHelper : Point -> NodeDataWithId -> NodeDataWithId
@@ -105,28 +124,17 @@ insertPoint point ast =
                 &> Zipper.goToRightMostChild
 
         newId =
-            Maybe.map Tuple.first lastChild
-                |> Maybe.andThen
-                    (\tree ->
-                        case tree of
-                            Tree node _ ->
-                                List.head <| List.reverse node.id
-                    )
-                |> Maybe.withDefault -1
-                |> (+) 1
-                |> List.singleton
-                |> (++) [ 0 ]
+            getNode lastChild
+                |> Maybe.map .id
+                |> Maybe.andThen updateId
+                |> Maybe.withDefault []
 
         insertedMZipper =
             listNode
                 &> Zipper.appendChild (pointNode newId [] point)
                 &> Zipper.goToRoot
     in
-        let
-            ( insertedAst, _ ) =
-                Maybe.withDefault ( ast, [] ) insertedMZipper
-        in
-            insertedAst
+        getAst insertedMZipper
 
 
 updatePoint : Id -> Point -> Ast -> Ast
@@ -143,11 +151,7 @@ updatePoint id point ast =
                     &> Zipper.updateDatum (updatePointHelper point)
                     &> Zipper.goToRoot
         in
-            let
-                ( updatedAst, _ ) =
-                    Maybe.withDefault ( ast, [] ) updatedMZipper
-            in
-                updatedAst
+            getAst updatedMZipper
 
 
 toWalkCommands : Id -> List (ZipperAst -> Maybe ZipperAst)
@@ -158,3 +162,13 @@ toWalkCommands id =
 applyCommands : List (ZipperAst -> Maybe ZipperAst) -> Maybe ZipperAst -> Maybe ZipperAst
 applyCommands commands mzipper =
     List.foldl (\cmd acc -> Maybe.andThen cmd acc) mzipper commands
+
+
+updateId : Id -> Maybe Id
+updateId old =
+    case List.reverse old of
+        x :: xs ->
+            Just <| xs ++ [ x + 1 ]
+
+        _ ->
+            Nothing
