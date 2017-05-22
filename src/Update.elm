@@ -3,8 +3,9 @@ module Update exposing (..)
 import Models exposing (Model)
 import Messages as Msg exposing (Msg)
 import AceCodeBox
-import PointsParser.Ast exposing (Ast(NList, NPoint, Root))
+import PointsParser.Ast as Ast exposing (Ast(NList, NPoint, Root))
 import PointsParser.Parser as P
+import PointsParser.Unparser as Unparser
 import AppConstant
 
 
@@ -13,9 +14,10 @@ update msg model =
     case msg of
         Msg.UpdateCode aceCodeBoxInfo ->
             let
-              newAst Result.withDefault model.ast <| P.parse aceCodeBoxInfo.code
+                newAst =
+                    Result.withDefault model.ast <| P.parse aceCodeBoxInfo.code
             in
-            ( { model | code = aceCodeBoxInfo.code, ast = newAst }, Cmd.none )
+                ( { model | code = aceCodeBoxInfo.code, ast = newAst }, Cmd.none )
 
         Msg.CanvasClick position ->
             let
@@ -23,73 +25,20 @@ update msg model =
                     position
 
                 newPosition =
-                    [ ( x - AppConstant.diffX, y - AppConstant.diffY ) ]
+                    { x = x - AppConstant.diffX, y = y - AppConstant.diffY }
 
-                newPoints =
-                    model.points ++ newPosition
+                newAst =
+                    Ast.insertPoint newPosition model.ast
+
+                newCode =
+                    Result.withDefault model.code Unparser.unparse newAst
 
                 newModel =
                     { model
-                        | points = newPoints
-                        , code = toString newPoints
+                        | ast = newAst
+                        , code = newCode
                     }
             in
                 ( newModel
                 , AceCodeBox.displayCode newModel
                 )
-
-
-parse2points : List Point -> String -> List Point
-parse2points prevPoints code =
-    let
-        parseResult =
-            Result.mapError (\_ -> ()) <| parse code
-
-        resultValue =
-            Result.andThen ast2value parseResult
-    in
-        case resultValue of
-            Ok points ->
-                points
-
-            Err _ ->
-                prevPoints
-
-
-ast2value : Ast -> Result () (List Point)
-ast2value ast =
-    case ast of
-        Root root ->
-            nlist2value root.ast
-
-        _ ->
-            Err ()
-
-
-nlist2value : Ast -> Result () (List Point)
-nlist2value ast =
-    case ast of
-        NList nlist ->
-            let
-                f npoint acc =
-                    case npoint2value npoint of
-                        Ok point ->
-                            Result.map (\acc_ -> point :: acc_) acc
-
-                        _ ->
-                            Err ()
-            in
-                List.foldl f (Ok []) nlist.asts
-
-        _ ->
-            Err ()
-
-
-npoint2value : Ast -> Result () Point
-npoint2value ast =
-    case ast of
-        NPoint point ->
-            Ok ( point.x, point.y )
-
-        _ ->
-            Err ()

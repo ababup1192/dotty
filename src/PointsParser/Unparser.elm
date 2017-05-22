@@ -25,8 +25,8 @@ type alias ParsedValue =
 --        Root <| NList <| List.map toNDot points
 
 
-unparseAst : Ast -> Result String String
-unparseAst (MT.Tree { id, data } children) =
+unparse : Ast -> Result String String
+unparse (MT.Tree { id, data } children) =
     case data of
         NRoot ->
             case children of

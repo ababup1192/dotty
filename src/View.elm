@@ -10,15 +10,16 @@ import Json.Decode as Decode
 import Messages as Msg exposing (Msg)
 import Models exposing (Model)
 import AppConstant
+import PointsParser.Ast exposing (Ast, Point)
 
 
 view : Model -> Html Msg
-view ({ code, points } as model) =
+view ({ code, ast } as model) =
     div
         [ Attr.class "hybridEditor"
         ]
         [ textEditor
-        , visualEditor points
+        , visualEditor ast
         ]
 
 
@@ -31,15 +32,15 @@ textEditor =
         []
 
 
-visualEditor : List Models.Point -> Html Msg
-visualEditor points =
+visualEditor : Ast -> Html Msg
+visualEditor ast =
     svg
         [ SvgAttr.viewBox "0 0 450 450"
         , SvgAttr.class "visualEditor"
         , onCanvasClick
         ]
     <|
-        drawDots points
+        drawDots ast
 
 
 onCanvasClick : Svg.Attribute Msg
@@ -47,7 +48,7 @@ onCanvasClick =
     SvgEvent.on "click" (Decode.map Msg.CanvasClick Mouse.position)
 
 
-drawDots : List Models.Point -> List (Svg msg)
+drawDots : Ast -> List (Svg msg)
 drawDots =
     List.map
         (\point ->

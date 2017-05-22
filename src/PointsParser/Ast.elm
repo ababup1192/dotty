@@ -72,6 +72,52 @@ getNode zipper =
         Just nodeDataId
 
 
+getChildren : Maybe ZipperAst -> Maybe NForest
+getChildren zipper =
+    let
+        (Tree _ children) =
+            getAst zipper
+    in
+        Just children
+
+
+getPoints : Ast -> List Point
+getPoints ast =
+    let
+        zipper =
+            ast
+                |> zipperelize
+
+        listZipper =
+            zipper
+                &> Zipper.goToChild 0
+
+        points =
+            case (getChildren listZipper) of
+                Just children ->
+                    List.foldl
+                        (\ast acc ->
+                            case ast of
+                                Tree { id, data } [] ->
+                                    case data of
+                                        NPoint point ->
+                                            point :: acc
+
+                                        _ ->
+                                            acc
+
+                                _ ->
+                                    acc
+                        )
+                        []
+                        children
+
+                Nothing ->
+                    []
+    in
+        List.reverse points
+
+
 rootNode : NForest -> Ast
 rootNode children =
     Tree { id = [], data = NRoot } children
@@ -115,12 +161,12 @@ insertPoint point ast =
             ast
                 |> zipperelize
 
-        listNode =
+        listZipper =
             zipper
                 &> Zipper.goToChild 0
 
         lastChild =
-            listNode
+            listZipper
                 &> Zipper.goToRightMostChild
 
         newId =
@@ -130,7 +176,7 @@ insertPoint point ast =
                 |> Maybe.withDefault []
 
         insertedMZipper =
-            listNode
+            listZipper
                 &> Zipper.appendChild (pointNode newId [] point)
                 &> Zipper.goToRoot
     in

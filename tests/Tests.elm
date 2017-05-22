@@ -6,7 +6,7 @@ import Test exposing (..)
 import TestExp exposing (..)
 import PointsParser.Ast exposing (..)
 import PointsParser.Parser exposing (dotsParser, parse)
-import PointsParser.Unparser exposing (unparseAst)
+import PointsParser.Unparser exposing (unparse)
 
 
 all : Test
@@ -16,6 +16,7 @@ all =
         , updatePointTest
         , unparserTest
         , insertPointTest
+        , getPointsTest
         ]
 
 
@@ -57,14 +58,23 @@ updatePointTest =
         ]
 
 
+getPointsTest : Test
+getPointsTest =
+    describe "DotsParser.Ast Test" <|
+        [ "[(1, 2), (3, 4)] -> [{x = 1, y = 2}, {x = 3, y = 4), {x = 5, y = 6}]"
+            => (parse "[(1, 2), (3, 4), (5, 6)]" |> Result.map getPoints)
+            === (Ok <| [ { x = 1, y = 2 }, { x = 3, y = 4 }, { x = 5, y = 6 } ])
+        ]
+
+
 unparserTest : Test
 unparserTest =
     describe "DotsParser.Unparser Test" <|
         [ "unparseAst Root <| NList []"
-            => (unparseAst <| rootNode [ listNode [ 0 ] [] ])
+            => (unparse <| rootNode [ listNode [ 0 ] [] ])
             === (Ok "[]")
         , "unparseAst Root <| NList [NDot 1 2]"
-            => (unparseAst <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
+            => (unparse <| rootNode [ listNode [ 0 ] [ pointNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
             === (Ok "[(1, 2)]")
         ]
 
