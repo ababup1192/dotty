@@ -3,7 +3,6 @@ module DotsParser.Ast exposing (..)
 import MultiwayTree exposing (Forest, Tree(..))
 import MultiwayTreeZipper as Zipper exposing (Zipper)
 import Mouse exposing (Position)
-import Debug
 
 
 type alias Index =
@@ -59,19 +58,43 @@ mzipper2Ast =
     Maybe.map Tuple.first
 
 
-mzipper2MNodeDataId : Maybe ZipperAst -> Maybe NodeDataWithId
-mzipper2MNodeDataId mzipper =
-    Maybe.map Zipper.datum mzipper
+node2Id : Ast -> Id
+node2Id ast =
+    MultiwayTree.datum ast |> .id
 
 
 node2NData : Ast -> NodeData
-node2NData (Tree nodeDataId _) =
-    nodeDataId.data
+node2NData ast =
+    MultiwayTree.datum ast |> .data
 
 
 mzipper2MNForest : Maybe ZipperAst -> Maybe NForest
 mzipper2MNForest =
     Maybe.map MultiwayTree.children << mzipper2Ast
+
+
+listMZipper2ListPositionWithId : Maybe ZipperAst -> List PositionWithId
+listMZipper2ListPositionWithId listMZipper =
+    List.reverse <|
+        case (mzipper2MNForest listMZipper) of
+            Just children ->
+                List.foldl
+                    (\ast acc ->
+                        case node2NData ast of
+                            NPosition position ->
+                                { id = (MultiwayTree.datum ast).id
+                                , position = position
+                                }
+                                    :: acc
+
+                            _ ->
+                                acc
+                    )
+                    []
+                    children
+
+            Nothing ->
+                Debug.crash "listZipper is not found."
 
 
 ast2Positions : Ast -> List PositionWithId
@@ -84,29 +107,8 @@ ast2Positions ast =
         listMZipper =
             mzipper
                 &> Zipper.goToChild 0
-
-        positions =
-            case (mzipper2MNForest listMZipper) of
-                Just children ->
-                    List.foldl
-                        (\ast acc ->
-                            case node2NData ast of
-                                NPosition position ->
-                                    { id = (MultiwayTree.datum ast).id
-                                    , position = position
-                                    }
-                                        :: acc
-
-                                _ ->
-                                    acc
-                        )
-                        []
-                        children
-
-                Nothing ->
-                    []
     in
-        List.reverse positions
+        listMZipper2ListPositionWithId listMZipper
 
 
 rootNode : NForest -> Ast
@@ -150,8 +152,8 @@ getPosition id ast =
                 |> applyCommands (toWalkCommands id)
 
         mposition =
-            mzipper2MNodeDataId mzipper
-                |> Maybe.map .data
+            mzipper2Ast mzipper
+                |> Maybe.map node2NData
                 |> Maybe.andThen
                     (\data ->
                         case data of
@@ -181,8 +183,8 @@ insertPosition position ast =
                 &> Zipper.goToRightMostChild
 
         newId =
-            mzipper2MNodeDataId lastChild
-                |> Maybe.map .id
+            mzipper2Ast lastChild
+                |> Maybe.map node2Id
                 |> Maybe.andThen updateId
                 |> Maybe.withDefault []
 
