@@ -38,7 +38,6 @@ update msg model =
                     { model
                         | ast = newAst
                         , code = newCode
-                        , drag = Nothing
                     }
             in
                 ( newModel
@@ -56,13 +55,26 @@ update msg model =
             let
                 newDrag =
                     Maybe.map (\{ start, target } -> Models.Drag start xy target) model.drag
+
+                realPosition =
+                    getRealPosition model.ast newDrag (Maybe.andThen (\d -> Ast.getPosition d.target model.ast) newDrag)
             in
-                Debug.log "drag at"
-                    ( { model
-                        | drag = newDrag
-                      }
-                    , Cmd.none
-                    )
+                case realPosition of
+                    Just position ->
+                        case newDrag of
+                            Just { target } ->
+                                ( { model
+                                    | drag = newDrag
+                                    , ast = Ast.updatePosition target position model.ast
+                                  }
+                                , Cmd.none
+                                )
+
+                            Nothing ->
+                                Debug.crash "can not found drag"
+
+                    Nothing ->
+                        Debug.crash "can not get realPosition"
 
         Msg.DragEnd _ ->
             case model.drag of
@@ -72,7 +84,7 @@ update msg model =
                             Ast.getPosition target model.ast
 
                         newAst =
-                            case (getRealPosition model.ast drag mPosition) of
+                            case (getRealPosition model.ast model.drag mPosition) of
                                 Just position ->
                                     Ast.updatePosition target position model.ast
 
@@ -90,14 +102,19 @@ update msg model =
                     Debug.crash "Drag target is not found."
 
 
-getRealPosition : Ast -> Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
-getRealPosition ast { start, current, target } mPosition =
-    case mPosition of
-        Just position ->
-            Just <|
-                Mouse.Position
-                    (position.x + current.x - start.x)
-                    (position.y + current.y - start.y)
+getRealPosition : Ast -> Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
+getRealPosition ast drag mPosition =
+    case drag of
+        Just { start, current, target } ->
+            case mPosition of
+                Just position ->
+                    Just <|
+                        Mouse.Position
+                            (position.x + current.x - start.x)
+                            (position.y + current.y - start.y)
+
+                Nothing ->
+                    Nothing
 
         Nothing ->
             Nothing
