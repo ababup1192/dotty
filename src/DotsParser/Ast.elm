@@ -28,6 +28,10 @@ type alias NodeDataWithId =
     Identified { data : NodeData }
 
 
+type alias PositionWithId =
+    { id : Id, position : Position }
+
+
 type alias Ast =
     Tree NodeDataWithId
 
@@ -77,7 +81,7 @@ mzipper2MNForest mzipper =
         |> Maybe.map (\(Tree _ children) -> children)
 
 
-ast2Positions : Ast -> List Position
+ast2Positions : Ast -> List PositionWithId
 ast2Positions ast =
     let
         mzipper =
@@ -95,7 +99,10 @@ ast2Positions ast =
                         (\ast acc ->
                             case node2NData ast of
                                 NPosition position ->
-                                    position :: acc
+                                    { id = (MultiwayTree.datum ast).id
+                                    , position = position
+                                    }
+                                        :: acc
 
                                 _ ->
                                     acc

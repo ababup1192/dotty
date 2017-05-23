@@ -73,7 +73,12 @@ ast2PositionsTest =
     describe "DotsParser.Ast Test" <|
         [ "[(1, 2), (3, 4)] -> [{x = 1, y = 2}, {x = 3, y = 4), {x = 5, y = 6}]"
             => (parse "[(1, 2), (3, 4), (5, 6)]" |> Result.map ast2Positions)
-            === (Ok <| [ { x = 1, y = 2 }, { x = 3, y = 4 }, { x = 5, y = 6 } ])
+            === (Ok <|
+                    [ { id = [ 0, 0 ], position = { x = 1, y = 2 } }
+                    , { id = [ 0, 1 ], position = { x = 3, y = 4 } }
+                    , { id = [ 0, 2 ], position = { x = 5, y = 6 } }
+                    ]
+                )
         ]
 
 

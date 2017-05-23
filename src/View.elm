@@ -45,25 +45,21 @@ visualEditor ast =
             Ast.ast2Positions ast
 
 
-onCanvasClick : Svg.Attribute Msg
-onCanvasClick =
-    SvgEvent.on "click" (Decode.map Msg.CanvasClick Mouse.position)
-
-
-drawDots : List Position -> List (Svg msg)
+drawDots : List Ast.PositionWithId -> List (Svg Msg)
 drawDots =
     List.map
-        (\point ->
+        (\{ position, id } ->
             let
                 cx =
-                    toString <| point.x - AppConstant.viewDiffX
+                    toString <| position.x - AppConstant.viewDiffX
 
                 cy =
-                    toString <| point.y - AppConstant.viewDiffY
+                    toString <| position.y - AppConstant.viewDiffY
 
                 c =
                     circle
-                        [ SvgAttr.cx cx
+                        [ onCircleMouseDown id
+                        , SvgAttr.cx cx
                         , SvgAttr.cy cy
                         , SvgAttr.r "3"
                         , SvgAttr.fill "#0B79CE"
@@ -72,3 +68,13 @@ drawDots =
             in
                 c
         )
+
+
+onCanvasClick : Svg.Attribute Msg
+onCanvasClick =
+    SvgEvent.on "click" (Decode.map Msg.CanvasClick Mouse.position)
+
+
+onCircleMouseDown : Ast.Id -> Svg.Attribute Msg
+onCircleMouseDown target =
+    SvgEvent.on "mousedown" (Decode.map (\position -> Msg.DragStart position target) Mouse.position)

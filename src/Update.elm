@@ -3,10 +3,11 @@ module Update exposing (..)
 import Models exposing (Model)
 import Messages as Msg exposing (Msg)
 import AceCodeBox
-import DotsParser.Ast as Ast
+import DotsParser.Ast as Ast exposing (Ast)
 import DotsParser.Parser as P
 import DotsParser.Unparser as Unparser
 import AppConstant
+import Mouse
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -45,15 +46,58 @@ update msg model =
                 )
 
         Msg.DragStart xy id ->
-            { model
+            ( { model
                 | drag = Just <| Models.Drag xy xy id
-            }
+              }
+            , Cmd.none
+            )
 
         Msg.DragAt xy ->
             let
                 newDrag =
-                    Maybe.map (\{ start, id } -> Models.Drag start xy id) model.drag
+                    Maybe.map (\{ start, target } -> Models.Drag start xy target) model.drag
             in
-                { model
-                    | drag = newDrag
-                }
+                Debug.log "drag at"
+                    ( { model
+                        | drag = newDrag
+                      }
+                    , Cmd.none
+                    )
+
+        Msg.DragEnd _ ->
+            case model.drag of
+                Just ({ target } as drag) ->
+                    let
+                        mPosition =
+                            Ast.getPosition target model.ast
+
+                        newAst =
+                            case (getRealPosition model.ast drag mPosition) of
+                                Just position ->
+                                    Ast.updatePosition target position model.ast
+
+                                Nothing ->
+                                    Debug.crash "Can not found mouse position"
+                    in
+                        ( { model
+                            | drag = Nothing
+                            , ast = newAst
+                          }
+                        , Cmd.none
+                        )
+
+                Nothing ->
+                    Debug.crash "Drag target is not found."
+
+
+getRealPosition : Ast -> Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
+getRealPosition ast { start, current, target } mPosition =
+    case mPosition of
+        Just position ->
+            Just <|
+                Mouse.Position
+                    (position.x + current.x - start.x)
+                    (position.y + current.y - start.y)
+
+        Nothing ->
+            Nothing
