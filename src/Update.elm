@@ -1,18 +1,24 @@
 module Update exposing (..)
 
-import Models exposing (Model, Point)
+import Models exposing (Model)
 import Messages as Msg exposing (Msg)
 import AceCodeBox
-import PointsParser.Ast exposing (Ast(NList, NPoint, Root))
-import PointsParser.Parser exposing (parse)
+import DotsParser.Ast as Ast exposing (Ast)
+import DotsParser.Parser as P
+import DotsParser.Unparser as Unparser
 import AppConstant
+import Mouse
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Msg.UpdateCode aceCodeBoxInfo ->
-            ( { model | code = aceCodeBoxInfo.code, points = parse2points model.points aceCodeBoxInfo.code }, Cmd.none )
+            let
+                newAst =
+                    Result.withDefault model.ast <| P.parse aceCodeBoxInfo.code
+            in
+                ( { model | code = aceCodeBoxInfo.code, ast = newAst, drag = Nothing }, Cmd.none )
 
         Msg.CanvasClick position ->
             let
@@ -20,73 +26,104 @@ update msg model =
                     position
 
                 newPosition =
-                    [ ( x - AppConstant.diffX, y - AppConstant.diffY ) ]
+                    { x = x - AppConstant.diffX, y = y - AppConstant.diffY }
 
-                newPoints =
-                    model.points ++ newPosition
+                newAst =
+                    Ast.insertPosition newPosition model.ast
+
+                newCode =
+                    Result.withDefault model.code (Unparser.unparse newAst)
 
                 newModel =
                     { model
-                        | points = newPoints
-                        , code = toString newPoints
+                        | ast = newAst
+                        , code = newCode
                     }
             in
-                ( newModel
-                , AceCodeBox.displayCode newModel
-                )
+                case model.drag of
+                    Nothing ->
+                        ( newModel
+                        , AceCodeBox.displayCode newModel
+                        )
 
+                    Just _ -> (model, Cmd.none)
 
-parse2points : List Point -> String -> List Point
-parse2points prevPoints code =
-    let
-        parseResult =
-            Result.mapError (\_ -> ()) <| parse code
+        Msg.DragStart xy id ->
+            ( { model
+                | drag = Just <| Models.Drag xy xy id
+              }
+            , Cmd.none
+            )
 
-        resultValue =
-            Result.andThen ast2value parseResult
-    in
-        case resultValue of
-            Ok points ->
-                points
-
-            Err _ ->
-                prevPoints
-
-
-ast2value : Ast -> Result () (List Point)
-ast2value ast =
-    case ast of
-        Root root ->
-            nlist2value root.ast
-
-        _ ->
-            Err ()
-
-
-nlist2value : Ast -> Result () (List Point)
-nlist2value ast =
-    case ast of
-        NList nlist ->
+        Msg.DragAt xy ->
             let
-                f npoint acc =
-                    case npoint2value npoint of
-                        Ok point ->
-                            Result.map (\acc_ -> point :: acc_) acc
+                newDrag =
+                    Maybe.map (\{ start, target } -> Models.Drag start xy target) model.drag
 
-                        _ ->
-                            Err ()
+                realPosition =
+                    Maybe.andThen (\d -> Ast.getPosition d.target model.ast) newDrag
             in
-                List.foldl f (Ok []) nlist.asts
+                case realPosition of
+                    Just position ->
+                        case newDrag of
+                            Just { target } ->
+                                let
+                                    newAst = Ast.updatePosition target position model.ast
+                                in
+                                    ( { model
+                                        | drag = newDrag
+                                        , ast = newAst
+                                        , code = Result.withDefault model.code <| Unparser.unparse newAst
+                                      }
+                                    , Cmd.none
+                                    )
 
-        _ ->
-            Err ()
+                            Nothing ->
+                                Debug.crash "can not found drag"
+
+                    Nothing ->
+                        Debug.crash "can not get realPosition"
+
+        Msg.DragEnd _ ->
+            case model.drag of
+                Just ({ target } as drag) ->
+                    let
+                        mPosition =
+                            Ast.getPosition target model.ast
+
+                        newAst =
+                            case (getRealPosition model.ast model.drag mPosition) of
+                                Just position ->
+                                    Ast.updatePosition target position model.ast
+
+                                Nothing ->
+                                    Debug.crash "Can not found mouse position"
+                    in
+                        ( { model
+                          | drag = Nothing
+                          , ast = newAst
+                          , code = Result.withDefault model.code <| Unparser.unparse newAst
+                          }
+                        , Cmd.none
+                        )
+
+                Nothing ->
+                    Debug.crash "Drag target is not found."
 
 
-npoint2value : Ast -> Result () Point
-npoint2value ast =
-    case ast of
-        NPoint point ->
-            Ok ( point.x, point.y )
+getRealPosition : Ast -> Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
+getRealPosition ast drag mPosition =
+    case drag of
+        Just { start, current, target } ->
+            case mPosition of
+                Just position ->
+                    Just <|
+                        Mouse.Position
+                            (position.x + current.x - start.x)
+                            (position.y + current.y - start.y)
 
-        _ ->
-            Err ()
+                Nothing ->
+                    Nothing
+
+        Nothing ->
+            Nothing

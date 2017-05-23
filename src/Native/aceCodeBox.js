@@ -30,10 +30,11 @@ const displayCode = (code) =>
 export const subscribe = (app) => {
     app.ports.aceCodeBoxCmd.subscribe((aceCmd) => {
         const message = aceCmd.message;
-        const code = aceCmd.model.code;
+        const code = aceCmd.code;
 
         if (message === "initializeAndDisplay") {
             initialize(app);
+            displayCode(code);
         } else if (message === "displayCode") {
             displayCode(code)
         }

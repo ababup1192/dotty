@@ -1,32 +1,11 @@
-module PointsParser.Unparser exposing (..)
+module DotsParser.Unparser exposing (..)
 
-import PointsParser.Ast exposing (Ast, NodeData(NPoint, NList, NRoot))
+import DotsParser.Ast exposing (Ast, NodeData(NPosition, NList, NRoot))
 import MultiwayTree as MT
 
 
-type alias Point =
-    ( Int, Int )
-
-
-type alias ParsedValue =
-    List Point
-
-
-
--- unparse : ParsedValue -> Result String String
--- unparse =
---    unparseAst << toAst
--- toAst : ParsedValue -> Ast
--- toAst points =
---    let
---        toNDot ( x, y ) =
---            NPoint x y
---    in
---        Root <| NList <| List.map toNDot points
-
-
-unparseAst : Ast -> Result String String
-unparseAst (MT.Tree { id, data } children) =
+unparse : Ast -> Result String String
+unparse (MT.Tree { id, data } children) =
     case data of
         NRoot ->
             case children of
@@ -49,9 +28,21 @@ list (MT.Tree { id, data } children) =
                     Result.map (\acc_ -> p ++ acc_) acc
 
                 points =
-                    List.foldl (\p acc -> Result.andThen (concat acc) p) (Ok "") <| List.map point children
+                    List.map point children
+                        |> List.foldl
+                            (\p acc ->
+                                case p of
+                                    Ok p_ ->
+                                        p_ :: acc
+
+                                    Err _ ->
+                                        acc
+                            )
+                            []
+                        |> List.reverse
+                        |> String.join ", "
             in
-                Result.map (\points_ -> "[" ++ points_ ++ "]") points
+                Ok <| "[" ++ points ++ "]"
 
         _ ->
             Err "Here must be NList."
@@ -60,7 +51,7 @@ list (MT.Tree { id, data } children) =
 point : Ast -> Result String String
 point (MT.Tree { id, data } children) =
     case data of
-        NPoint { x, y } ->
+        NPosition { x, y } ->
             let
                 x_ =
                     toString x

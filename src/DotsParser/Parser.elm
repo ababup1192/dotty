@@ -1,7 +1,7 @@
-module PointsParser.Parser exposing (..)
+module DotsParser.Parser exposing (..)
 
 import Parser exposing (Error, Parser, end, fail, ignore, int, oneOf, repeat, run, succeed, symbol, zeroOrMore, (|.), (|=))
-import PointsParser.Ast exposing (..)
+import DotsParser.Ast exposing (..)
 
 
 type alias ParseResult =
@@ -32,7 +32,7 @@ expression id =
 
 point : Id -> Parser Ast
 point id =
-    succeed (\x y -> pointNode (List.reverse id) [] { x = x, y = y })
+    succeed (\x y -> positionNode (List.reverse id) [] { x = x, y = y })
         |. symbol "("
         |. spaces
         |= int
@@ -67,8 +67,8 @@ oneOrMoreList id =
     let
         assignIdIfNPoint index ast =
             case data ast of
-                NPoint point ->
-                    pointNode (List.reverse <| index :: id) [] point
+                NPosition position ->
+                    positionNode (List.reverse <| index :: id) [] position
 
                 _ ->
                     ast

@@ -1,18 +1,26 @@
 module Models exposing (..)
 
-
-type alias Point =
-    ( Int, Int )
+import DotsParser.Ast as Ast exposing (Ast, initialAst)
+import Mouse exposing (Position)
 
 
 type alias Model =
     { code : String
-    , points : List Point
+    , ast : Ast
+    , drag : Maybe Drag
+    }
+
+
+type alias Drag =
+    { start : Position
+    , current : Position
+    , target : Ast.Id
     }
 
 
 initialModel : Model
 initialModel =
     { code = "[]"
-    , points = []
+    , ast = initialAst
+    , drag = Nothing
     }

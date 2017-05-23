@@ -6,6 +6,7 @@ import Messages as Msg exposing (Msg)
 import View exposing (view)
 import Update exposing (update)
 import AceCodeBox
+import Mouse
 
 
 init : ( Model, Cmd Msg )
@@ -26,9 +27,18 @@ initCmd =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ AceCodeBox.receiveEditorState msgAceUpdate
-        ]
+    case model.drag of
+        Just _ ->
+            Sub.batch
+                [ AceCodeBox.receiveEditorState msgAceUpdate
+                , Mouse.moves Msg.DragAt
+                , Mouse.ups Msg.DragEnd
+                ]
+
+        Nothing ->
+            Sub.batch
+                [ AceCodeBox.receiveEditorState msgAceUpdate
+                ]
 
 
 msgAceUpdate : AceCodeBox.AceCodeBoxInfo -> Msg
