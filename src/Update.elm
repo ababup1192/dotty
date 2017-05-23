@@ -26,45 +26,29 @@ update msg model =
             dragAt model xy
 
         Msg.DragEnd _ ->
-            case model.drag of
-                Just ({ target } as drag) ->
-                    let
-                        mPosition =
-                            Ast.getPosition target model.ast
-
-                        newAst =
-                            case (getRealPosition model.ast model.drag mPosition) of
-                                Just position ->
-                                    Ast.updatePosition target position model.ast
-
-                                Nothing ->
-                                    Debug.crash "Can not found mouse position"
-                    in
-                        ( { model
-                            | drag = Nothing
-                            , ast = newAst
-                            , code = Result.withDefault model.code <| Unparser.unparse newAst
-                          }
-                        , Cmd.none
-                        )
-
-                Nothing ->
-                    Debug.crash "Drag target is not found."
+            dragEnd model
 
 
 updateCode : Model -> AceCodeBox.AceCodeBoxInfo -> ( Model, Cmd Msg )
-updateCode ({ ast } as model) aceCodeBoxInfo =
+updateCode ({ ast, drag } as model) aceCodeBoxInfo =
     let
         newAst =
             Result.withDefault ast <| P.parse aceCodeBoxInfo.code
     in
-        ( { model | code = aceCodeBoxInfo.code, ast = newAst, drag = Nothing }
-        , Cmd.none
-        )
+        case drag of
+            Just _ ->
+                ( { model | code = aceCodeBoxInfo.code }
+                , Cmd.none
+                )
+
+            Nothing ->
+                ( { model | code = aceCodeBoxInfo.code, ast = newAst, drag = Nothing }
+                , Cmd.none
+                )
 
 
 canvasClick : Model -> Mouse.Position -> ( Model, Cmd Msg )
-canvasClick ({ ast, drag } as model) position =
+canvasClick ({ code, ast, drag } as model) position =
     let
         newPosition =
             { x = position.x - AppConstant.diffX, y = position.y - AppConstant.diffY }
@@ -73,7 +57,7 @@ canvasClick ({ ast, drag } as model) position =
             Ast.insertPosition newPosition ast
 
         newCode =
-            Result.withDefault model.code (Unparser.unparse newAst)
+            Result.withDefault code (Unparser.unparse newAst)
 
         newModel =
             { model
@@ -83,7 +67,7 @@ canvasClick ({ ast, drag } as model) position =
     in
         case drag of
             Just _ ->
-                ( newModel, Cmd.none )
+                ( model, Cmd.none )
 
             Nothing ->
                 ( newModel
@@ -106,39 +90,40 @@ dragAt ({ drag, ast, code } as model) xy =
         newDrag =
             Maybe.map (\{ start, target } -> Models.Drag start xy target) drag
 
-        currentPosition =
-            case (Maybe.andThen (\d -> Ast.getPosition d.target ast) newDrag) of
-                Just position ->
-                    position
-
-                Nothing ->
-                    Debug.crash "can not get realPosition"
-
-        targetId =
-            case newDrag of
-                Just { target } ->
-                    target
-
-                Nothing ->
-                    Debug.crash "can not found drag"
-
-        newAst =
-            Ast.updatePosition targetId currentPosition ast
-
-        newCode =
-            Result.withDefault code <| Unparser.unparse newAst
+        realPosition =
+            Maybe.andThen (\d -> Ast.getPosition d.target ast) newDrag
     in
-        ( { model
-            | drag = newDrag
-            , ast = newAst
-            , code = newCode
-          }
-        , Cmd.none
-        )
+        case realPosition of
+            Just position ->
+                case newDrag of
+                    Just { target } ->
+                        let
+                            newAst =
+                                Debug.log "newAst" <| Ast.updatePosition target position ast
+
+                            newCode =
+                                Debug.log "newCode" <| Result.withDefault code <| Unparser.unparse newAst
+
+                            newModel =
+                                { model
+                                    | drag = newDrag
+                                    , ast = newAst
+                                    , code = newCode
+                                }
+                        in
+                            ( newModel
+                            , AceCodeBox.displayCode newModel
+                            )
+
+                    Nothing ->
+                        Debug.crash "can not found drag"
+
+            Nothing ->
+                Debug.crash "can not get realPosition"
 
 
 dragEnd : Model -> ( Model, Cmd Msg )
-dragEnd ({ ast, drag } as model) =
+dragEnd ({ ast, drag, code } as model) =
     let
         targetId =
             case drag of
@@ -160,14 +145,17 @@ dragEnd ({ ast, drag } as model) =
                     Debug.crash "Can not found mouse position"
 
         newCode =
-            Result.withDefault model.code <| Unparser.unparse newAst
+            Result.withDefault code <| Unparser.unparse newAst
+
+        newModel =
+            { model
+                | drag = Nothing
+                , ast = newAst
+                , code = newCode
+            }
     in
-        ( { model
-            | drag = Nothing
-            , ast = newAst
-            , code = newCode
-          }
-        , Cmd.none
+        ( newModel
+        , AceCodeBox.displayCode newModel
         )
 
 
