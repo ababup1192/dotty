@@ -40,9 +40,13 @@ update msg model =
                         , code = newCode
                     }
             in
-                ( newModel
-                , AceCodeBox.displayCode newModel
-                )
+                case model.drag of
+                    Nothing ->
+                        ( newModel
+                        , AceCodeBox.displayCode newModel
+                        )
+
+                    Just _ -> (model, Cmd.none)
 
         Msg.DragStart xy id ->
             ( { model
@@ -57,18 +61,22 @@ update msg model =
                     Maybe.map (\{ start, target } -> Models.Drag start xy target) model.drag
 
                 realPosition =
-                    getRealPosition model.ast newDrag (Maybe.andThen (\d -> Ast.getPosition d.target model.ast) newDrag)
+                    Maybe.andThen (\d -> Ast.getPosition d.target model.ast) newDrag
             in
                 case realPosition of
                     Just position ->
                         case newDrag of
                             Just { target } ->
-                                ( { model
-                                    | drag = newDrag
-                                    , ast = Ast.updatePosition target position model.ast
-                                  }
-                                , Cmd.none
-                                )
+                                let
+                                    newAst = Ast.updatePosition target position model.ast
+                                in
+                                    ( { model
+                                        | drag = newDrag
+                                        , ast = newAst
+                                        , code = Result.withDefault model.code <| Unparser.unparse newAst
+                                      }
+                                    , Cmd.none
+                                    )
 
                             Nothing ->
                                 Debug.crash "can not found drag"
@@ -92,8 +100,9 @@ update msg model =
                                     Debug.crash "Can not found mouse position"
                     in
                         ( { model
-                            | drag = Nothing
-                            , ast = newAst
+                          | drag = Nothing
+                          , ast = newAst
+                          , code = Result.withDefault model.code <| Unparser.unparse newAst
                           }
                         , Cmd.none
                         )
