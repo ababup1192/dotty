@@ -8,19 +8,20 @@ import Svg.Events as SvgEvent
 import Mouse
 import Json.Decode as Decode
 import Messages as Msg exposing (Msg)
-import Models exposing (Model)
+import Models exposing (Drag, Model)
+import Update
 import AppConstant
 import DotsParser.Ast as Ast exposing (Ast)
 import Mouse exposing (Position)
 
 
 view : Model -> Html Msg
-view ({ code, ast } as model) =
+view ({ code, ast, drag } as model) =
     div
         [ Attr.class "hybridEditor"
         ]
         [ textEditor
-        , visualEditor ast
+        , visualEditor ast drag
         ]
 
 
@@ -33,28 +34,43 @@ textEditor =
         []
 
 
-visualEditor : Ast -> Html Msg
-visualEditor ast =
+visualEditor : Ast -> Maybe Drag -> Html Msg
+visualEditor ast mdrag =
     svg
         [ SvgAttr.viewBox "0 0 450 450"
         , SvgAttr.class "visualEditor"
         , onCanvasClick
         ]
     <|
-        drawDots <|
-            Ast.ast2Positions ast
+        drawDots (Ast.ast2Positions ast) ast mdrag
 
 
-drawDots : List Ast.PositionWithId -> List (Svg Msg)
-drawDots =
+drawDots : List Ast.PositionWithId -> Ast -> Maybe Drag -> List (Svg Msg)
+drawDots nodes ast mdrag=
     List.map
         (\{ position, id } ->
             let
+                xy =
+                    case Update.getRealPosition ast mdrag <| Just position of
+                        Just pos ->
+                            case mdrag of
+                                Just drag ->
+                                    if id == drag.target then
+                                        pos
+                                    else
+                                        position
+
+                                Nothing ->
+                                    position
+
+                        Nothing ->
+                            position
+
                 cx =
-                    toString <| position.x - AppConstant.viewDiffX
+                    toString <| xy.x - AppConstant.viewDiffX
 
                 cy =
-                    toString <| position.y - AppConstant.viewDiffY
+                    toString <| xy.y - AppConstant.viewDiffY
 
                 c =
                     circle
@@ -67,7 +83,7 @@ drawDots =
                         []
             in
                 c
-        )
+        ) nodes
 
 
 onCanvasClick : Svg.Attribute Msg
