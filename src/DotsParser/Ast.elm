@@ -94,7 +94,7 @@ listMZipper2ListPositionWithId listMZipper =
                     children
 
             Nothing ->
-                Debug.crash "listZipper is not found."
+                []
 
 
 ast2Positions : Ast -> List PositionWithId
