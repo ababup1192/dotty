@@ -55,19 +55,13 @@ ast2MZipper ast =
 
 
 mzipper2Ast : Maybe ZipperAst -> Maybe Ast
-mzipper2Ast zipper =
-    case zipper of
-        Just ( ast, _ ) ->
-            Just ast
-
-        _ ->
-            Nothing
+mzipper2Ast =
+    Maybe.map Tuple.first
 
 
 mzipper2MNodeDataId : Maybe ZipperAst -> Maybe NodeDataWithId
 mzipper2MNodeDataId mzipper =
-    mzipper2Ast mzipper
-        |> Maybe.map (\(Tree nodeDataId _) -> nodeDataId)
+    Maybe.map Zipper.datum mzipper
 
 
 node2NData : Ast -> NodeData
@@ -76,9 +70,8 @@ node2NData (Tree nodeDataId _) =
 
 
 mzipper2MNForest : Maybe ZipperAst -> Maybe NForest
-mzipper2MNForest mzipper =
-    mzipper2Ast mzipper
-        |> Maybe.map (\(Tree _ children) -> children)
+mzipper2MNForest =
+    Maybe.map MultiwayTree.children << mzipper2Ast
 
 
 ast2Positions : Ast -> List PositionWithId
