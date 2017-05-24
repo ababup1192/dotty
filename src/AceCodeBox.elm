@@ -9,11 +9,11 @@ port module AceCodeBox
 import Models
 
 
-port aceCodeBoxCmd : AceCodeBoxCmd -> Cmd msg
-
-
 type alias AceCodeBoxCmd =
-    { message : String, model : Models.Model }
+    { message : String, code : String }
+
+
+port aceCodeBoxCmd : AceCodeBoxCmd -> Cmd msg
 
 
 type alias AceCodeBoxInfo =
@@ -32,7 +32,7 @@ displayCode =
 
 sendCmd : String -> Models.Model -> Cmd msg
 sendCmd message model =
-    aceCodeBoxCmd { message = message, model = model }
+    aceCodeBoxCmd { message = message, code = model.code }
 
 
 port receiveEditorState : (AceCodeBoxInfo -> msg) -> Sub msg

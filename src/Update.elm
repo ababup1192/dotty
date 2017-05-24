@@ -1,92 +1,177 @@
 module Update exposing (..)
 
-import Models exposing (Model, Point)
+import Models exposing (Model)
 import Messages as Msg exposing (Msg)
 import AceCodeBox
-import PointsParser.Ast exposing (Ast(NList, NPoint, Root))
-import PointsParser.Parser exposing (parse)
+import DotsParser.Ast as Ast exposing (Ast)
+import DotsParser.Parser as P
+import DotsParser.Unparser as Unparser
 import AppConstant
+import Mouse
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Msg.UpdateCode aceCodeBoxInfo ->
-            ( { model | code = aceCodeBoxInfo.code, points = parse2points model.points aceCodeBoxInfo.code }, Cmd.none )
+            updateCode model aceCodeBoxInfo
 
         Msg.CanvasClick position ->
-            let
-                { x, y } =
-                    position
+            canvasClick model position
 
-                newPosition =
-                    [ ( x - AppConstant.diffX, y - AppConstant.diffY ) ]
+        Msg.DragStart xy id ->
+            dragStart model xy id
 
-                newPoints =
-                    model.points ++ newPosition
+        Msg.DragAt xy ->
+            dragAt model xy
 
-                newModel =
-                    { model
-                        | points = newPoints
-                        , code = toString newPoints
-                    }
-            in
+        Msg.DragEnd _ ->
+            dragEnd model
+
+
+updateCode : Model -> AceCodeBox.AceCodeBoxInfo -> ( Model, Cmd Msg )
+updateCode ({ ast, drag } as model) aceCodeBoxInfo =
+    let
+        newAst =
+            Result.withDefault ast <| P.parse aceCodeBoxInfo.code
+    in
+        case drag of
+            Just _ ->
+                ( { model | code = aceCodeBoxInfo.code }
+                , Cmd.none
+                )
+
+            Nothing ->
+                ( { model | code = aceCodeBoxInfo.code, ast = newAst, drag = Nothing }
+                , Cmd.none
+                )
+
+
+canvasClick : Model -> Mouse.Position -> ( Model, Cmd Msg )
+canvasClick ({ code, ast, drag } as model) position =
+    let
+        newPosition =
+            { x = position.x - AppConstant.diffX, y = position.y - AppConstant.diffY }
+
+        newAst =
+            Ast.insertPosition newPosition ast
+
+        newCode =
+            Result.withDefault code (Unparser.unparse newAst Nothing)
+
+        newModel =
+            { model
+                | ast = newAst
+                , code = newCode
+            }
+    in
+        case drag of
+            Just _ ->
+                ( model, Cmd.none )
+
+            Nothing ->
                 ( newModel
                 , AceCodeBox.displayCode newModel
                 )
 
 
-parse2points : List Point -> String -> List Point
-parse2points prevPoints code =
+dragStart : Model -> Mouse.Position -> Ast.Id -> ( Model, Cmd Msg )
+dragStart model xy id =
+    ( { model
+        | drag = Just <| Models.Drag xy xy id
+      }
+    , Cmd.none
+    )
+
+
+dragAt : Model -> Mouse.Position -> ( Model, Cmd Msg )
+dragAt ({ drag, ast, code } as model) xy =
     let
-        parseResult =
-            Result.mapError (\_ -> ()) <| parse code
+        newDrag =
+            Maybe.map (\{ start, target } -> Models.Drag start xy target) drag
 
-        resultValue =
-            Result.andThen ast2value parseResult
+        realPosition =
+            Maybe.andThen (\d -> Ast.getPosition d.target ast) newDrag
     in
-        case resultValue of
-            Ok points ->
-                points
+        case realPosition of
+            Just position ->
+                case newDrag of
+                    Just { target } ->
+                        let
+                            newAst =
+                                Ast.updatePosition target position ast
 
-            Err _ ->
-                prevPoints
+                            newCode =
+                                Result.withDefault code <| Unparser.unparse newAst newDrag
 
+                            newModel =
+                                { model
+                                    | drag = newDrag
+                                    , ast = newAst
+                                    , code = newCode
+                                }
+                        in
+                            ( newModel
+                            , AceCodeBox.displayCode newModel
+                            )
 
-ast2value : Ast -> Result () (List Point)
-ast2value ast =
-    case ast of
-        Root root ->
-            nlist2value root.ast
+                    Nothing ->
+                        Debug.crash "can not found drag"
 
-        _ ->
-            Err ()
-
-
-nlist2value : Ast -> Result () (List Point)
-nlist2value ast =
-    case ast of
-        NList nlist ->
-            let
-                f npoint acc =
-                    case npoint2value npoint of
-                        Ok point ->
-                            Result.map (\acc_ -> point :: acc_) acc
-
-                        _ ->
-                            Err ()
-            in
-                List.foldl f (Ok []) nlist.asts
-
-        _ ->
-            Err ()
+            Nothing ->
+                Debug.crash "can not get realPosition"
 
 
-npoint2value : Ast -> Result () Point
-npoint2value ast =
-    case ast of
-        NPoint point ->
-            Ok ( point.x, point.y )
+dragEnd : Model -> ( Model, Cmd Msg )
+dragEnd ({ ast, drag, code } as model) =
+    let
+        targetId =
+            case drag of
+                Just { target } ->
+                    target
 
-        _ ->
-            Err ()
+                Nothing ->
+                    Debug.crash "Drag target is not found."
+
+        mPosition =
+            Ast.getPosition targetId ast
+
+        newAst =
+            case (getRealPosition drag mPosition) of
+                Just position ->
+                    Ast.updatePosition targetId position ast
+
+                Nothing ->
+                    Debug.crash "Can not found mouse position"
+
+        newCode =
+            Result.withDefault code <| Unparser.unparse newAst Nothing
+
+        newModel =
+            { model
+                | drag = Nothing
+                , ast = newAst
+                , code = newCode
+            }
+    in
+        ( newModel
+        , AceCodeBox.displayCode newModel
+        )
+
+
+getRealPosition : Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
+getRealPosition drag mPosition =
+    case drag of
+        Just { start, current, target } ->
+            case mPosition of
+                Just position ->
+                    Just <|
+                        Mouse.Position
+                            (position.x + current.x - start.x)
+                            (position.y + current.y - start.y)
+
+                Nothing ->
+                    Nothing
+
+        Nothing ->
+            Nothing
