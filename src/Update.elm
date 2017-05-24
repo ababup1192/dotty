@@ -57,7 +57,7 @@ canvasClick ({ code, ast, drag } as model) position =
             Ast.insertPosition newPosition ast
 
         newCode =
-            Result.withDefault code (Unparser.unparse newAst)
+            Result.withDefault code (Unparser.unparse newAst Nothing)
 
         newModel =
             { model
@@ -99,10 +99,10 @@ dragAt ({ drag, ast, code } as model) xy =
                     Just { target } ->
                         let
                             newAst =
-                                Debug.log "newAst" <| Ast.updatePosition target position ast
+                                Ast.updatePosition target position ast
 
                             newCode =
-                                Debug.log "newCode" <| Result.withDefault code <| Unparser.unparse newAst
+                                Result.withDefault code <| Unparser.unparse newAst newDrag
 
                             newModel =
                                 { model
@@ -137,7 +137,7 @@ dragEnd ({ ast, drag, code } as model) =
             Ast.getPosition targetId ast
 
         newAst =
-            case (getRealPosition ast drag mPosition) of
+            case (getRealPosition drag mPosition) of
                 Just position ->
                     Ast.updatePosition targetId position ast
 
@@ -145,7 +145,7 @@ dragEnd ({ ast, drag, code } as model) =
                     Debug.crash "Can not found mouse position"
 
         newCode =
-            Result.withDefault code <| Unparser.unparse newAst
+            Result.withDefault code <| Unparser.unparse newAst Nothing
 
         newModel =
             { model
@@ -159,8 +159,8 @@ dragEnd ({ ast, drag, code } as model) =
         )
 
 
-getRealPosition : Ast -> Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
-getRealPosition ast drag mPosition =
+getRealPosition : Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
+getRealPosition drag mPosition =
     case drag of
         Just { start, current, target } ->
             case mPosition of

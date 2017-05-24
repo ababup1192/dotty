@@ -46,12 +46,12 @@ visualEditor ast mdrag =
 
 
 drawDots : List Ast.PositionWithId -> Ast -> Maybe Drag -> List (Svg Msg)
-drawDots nodes ast mdrag=
+drawDots nodes ast mdrag =
     List.map
         (\{ position, id } ->
             let
                 xy =
-                    case Update.getRealPosition ast mdrag <| Just position of
+                    case getRealPosition mdrag <| Just position of
                         Just pos ->
                             case mdrag of
                                 Just drag ->
@@ -83,7 +83,8 @@ drawDots nodes ast mdrag=
                         []
             in
                 c
-        ) nodes
+        )
+        nodes
 
 
 onCanvasClick : Svg.Attribute Msg
@@ -94,3 +95,21 @@ onCanvasClick =
 onCircleMouseDown : Ast.Id -> Svg.Attribute Msg
 onCircleMouseDown target =
     SvgEvent.on "mousedown" (Decode.map (\position -> Msg.DragStart position target) Mouse.position)
+
+
+getRealPosition : Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
+getRealPosition drag mPosition =
+    case drag of
+        Just { start, current, target } ->
+            case mPosition of
+                Just position ->
+                    Just <|
+                        Mouse.Position
+                            (position.x + current.x - start.x)
+                            (position.y + current.y - start.y)
+
+                Nothing ->
+                    Nothing
+
+        Nothing ->
+            Nothing
