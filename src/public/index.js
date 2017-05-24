@@ -8,5 +8,5 @@ const app = Elm.Main.embed(mountNode);
 
 // load ace editor
 require('brace');
-const aceCodeBox = require('../Native/aceCodeBox');
+const aceCodeBox = require('../AceBox/aceCodeBox');
 aceCodeBox.subscribe(app);
