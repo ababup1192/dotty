@@ -17,6 +17,7 @@ all =
         , updatePositionTest
         , ast2PositionsTest
         , unparserTest
+        , unparserWithDragTest
         ]
 
 
