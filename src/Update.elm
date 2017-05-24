@@ -47,27 +47,27 @@ updateCode ({ ast, drag } as model) aceCodeBoxInfo =
 
 canvasClick : Model -> Mouse.Position -> ( Model, Cmd Msg )
 canvasClick ({ code, ast, drag } as model) position =
-    let
-        newPosition =
-            { x = position.x - AppConstant.diffX, y = position.y - AppConstant.diffY }
+    case drag of
+        Just _ ->
+            ( model, Cmd.none )
 
-        newAst =
-            Ast.insertPosition newPosition ast
+        Nothing ->
+            let
+                newPosition =
+                    { x = position.x - AppConstant.diffX, y = position.y - AppConstant.diffY }
 
-        newCode =
-            Result.withDefault code (Unparser.unparse newAst Nothing)
+                newAst =
+                    Ast.insertPosition newPosition ast
 
-        newModel =
-            { model
-                | ast = newAst
-                , code = newCode
-            }
-    in
-        case drag of
-            Just _ ->
-                ( model, Cmd.none )
+                newCode =
+                    Result.withDefault code (Unparser.unparse newAst Nothing)
 
-            Nothing ->
+                newModel =
+                    { model
+                        | ast = newAst
+                        , code = newCode
+                    }
+            in
                 ( newModel
                 , AceCodeBox.displayCode newModel
                 )

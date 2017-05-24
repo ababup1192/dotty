@@ -67,7 +67,7 @@ updateCodeTest =
 canvasClickTest : Test
 canvasClickTest =
     describe "Update.canvasClick Test" <|
-        [ "canvasClick []"
+        [ "canvasClick [] <| click (30, 30)"
             => Tuple.first
                 (canvasClick { code = "[]", ast = Ast.rootNode [ Ast.listNode [ 0 ] [] ], drag = Nothing } { x = 500, y = 50 })
             === { code = "[(30, 30)]"
@@ -78,5 +78,23 @@ canvasClickTest =
                             ]
                         ]
                 , drag = Nothing
+                }
+        , "canvasClick [(0, 0)] <| click (30, 30) with Drag"
+            => Tuple.first
+                (canvasClick
+                    { code = "[(0, 0)]"
+                    , ast = Ast.rootNode [ Ast.listNode [ 0 ] [ Ast.positionNode [ 0, 0 ] [] { x = 0, y = 0 } ] ]
+                    , drag = Just <| Drag { x = 0, y = 0 } { x = 0, y = 0 } [ 0, 0 ]
+                    }
+                    { x = 0, y = 0 }
+                )
+            === { code = "[(0, 0)]"
+                , ast =
+                    Ast.rootNode
+                        [ Ast.listNode [ 0 ]
+                            [ Ast.positionNode [ 0, 0 ] [] { x = 0, y = 0 }
+                            ]
+                        ]
+                , drag = Just <| Drag { x = 0, y = 0 } { x = 0, y = 0 } [ 0, 0 ]
                 }
         ]
