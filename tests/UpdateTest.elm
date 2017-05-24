@@ -4,7 +4,6 @@ import Test exposing (..)
 import TestExp exposing (..)
 import Update exposing (..)
 import DotsParser.Ast as Ast
-import Models exposing (..)
 
 
 all : Test

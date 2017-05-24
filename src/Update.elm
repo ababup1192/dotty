@@ -42,9 +42,7 @@ updateCode ({ ast, drag } as model) aceCodeBoxInfo =
                 )
 
             Nothing ->
-                ( { model | code = aceCodeBoxInfo.code, ast = newAst, drag = Nothing }
-                , Cmd.none
-                )
+                ( { model | code = aceCodeBoxInfo.code, ast = newAst }, Cmd.none )
 
 
 canvasClick : Model -> Mouse.Position -> ( Model, Cmd Msg )

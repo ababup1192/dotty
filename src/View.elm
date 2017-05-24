@@ -9,7 +9,6 @@ import Mouse
 import Json.Decode as Decode
 import Messages as Msg exposing (Msg)
 import Models exposing (Drag, Model)
-import Update
 import AppConstant
 import DotsParser.Ast as Ast exposing (Ast)
 import Mouse exposing (Position)
