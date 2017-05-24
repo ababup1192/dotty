@@ -5,12 +5,14 @@ import TestExp exposing (..)
 import Update exposing (..)
 import DotsParser.Ast as Ast
 import Models exposing (Drag)
+import AppConstant
 
 
 all : Test
 all =
     describe "Update module Test" <|
         [ updateCodeTest
+        , canvasClickTest
         ]
 
 
@@ -58,5 +60,23 @@ updateCodeTest =
                             ]
                         ]
                 , drag = Just <| Drag { x = 3, y = 4 } { x = 102, y = 103 } [ 0, 1 ]
+                }
+        ]
+
+
+canvasClickTest : Test
+canvasClickTest =
+    describe "Update.canvasClick Test" <|
+        [ "canvasClick []"
+            => Tuple.first
+                (canvasClick { code = "[]", ast = Ast.rootNode [ Ast.listNode [ 0 ] [] ], drag = Nothing } { x = 500, y = 50 })
+            === { code = "[(30, 30)]"
+                , ast =
+                    Ast.rootNode
+                        [ Ast.listNode [ 0 ]
+                            [ Ast.positionNode [ 0, 0 ] [] { x = 500 - AppConstant.diffX, y = 50 - AppConstant.diffY }
+                            ]
+                        ]
+                , drag = Nothing
                 }
         ]

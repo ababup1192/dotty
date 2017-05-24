@@ -186,7 +186,7 @@ insertPosition position ast =
             mzipper2Ast lastChild
                 |> Maybe.map node2Id
                 |> Maybe.andThen updateId
-                |> Maybe.withDefault []
+                |> Maybe.withDefault [ 0, 0 ]
 
         insertedMZipper =
             listMZipper
