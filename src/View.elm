@@ -51,19 +51,14 @@ drawDots nodes ast mdrag =
         (\{ position, id } ->
             let
                 xy =
-                    case getRealPosition mdrag <| Just position of
-                        Just pos ->
-                            case mdrag of
-                                Just drag ->
-                                    if id == drag.target then
-                                        pos
-                                    else
-                                        position
+                    case ( getRealPosition mdrag <| Just position, mdrag ) of
+                        ( Just pos, Just drag ) ->
+                            if id == drag.target then
+                                pos
+                            else
+                                position
 
-                                Nothing ->
-                                    position
-
-                        Nothing ->
+                        _ ->
                             position
 
                 cx =
@@ -99,17 +94,12 @@ onCircleMouseDown target =
 
 getRealPosition : Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
 getRealPosition drag mPosition =
-    case drag of
-        Just { start, current, target } ->
-            case mPosition of
-                Just position ->
-                    Just <|
-                        Mouse.Position
-                            (position.x + current.x - start.x)
-                            (position.y + current.y - start.y)
+    case ( drag, mPosition ) of
+        ( Just { start, current, target }, Just position ) ->
+            Just <|
+                Mouse.Position
+                    (position.x + current.x - start.x)
+                    (position.y + current.y - start.y)
 
-                Nothing ->
-                    Nothing
-
-        Nothing ->
+        _ ->
             Nothing
