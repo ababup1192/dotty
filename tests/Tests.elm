@@ -86,13 +86,13 @@ unparserTest : Test
 unparserTest =
     describe "DotsParser.Unparser Test" <|
         [ "unparseAst Root <| NList []"
-            => (unparse <| rootNode [ listNode [ 0 ] [] ])
+            => unparse (rootNode [ listNode [ 0 ] [] ]) Nothing
             === (Ok "[]")
         , "unparseAst Root <| NList [NPoint 1 2]"
-            => (unparse <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
+            => unparse (rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 } ] ]) Nothing
             === (Ok "[(1, 2)]")
         , "unparseAst Root <| NList [NPoint 1 2, 3 4]"
-            => (unparse <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 0 ] [] { x = 3, y = 4 } ] ])
+            => unparse (rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 0 ] [] { x = 3, y = 4 } ] ]) Nothing
             === (Ok "[(1, 2), (3, 4)]")
         ]
 
