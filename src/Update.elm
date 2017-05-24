@@ -31,17 +31,17 @@ update msg model =
 
 updateCode : Model -> AceCodeBox.AceCodeBoxInfo -> ( Model, Cmd Msg )
 updateCode ({ ast, drag } as model) aceCodeBoxInfo =
-    let
-        newAst =
-            Result.withDefault ast <| P.parse aceCodeBoxInfo.code
-    in
-        case drag of
-            Just _ ->
-                ( { model | code = aceCodeBoxInfo.code }
-                , Cmd.none
-                )
+    case drag of
+        Just _ ->
+            ( { model | code = aceCodeBoxInfo.code }
+            , Cmd.none
+            )
 
-            Nothing ->
+        Nothing ->
+            let
+                newAst =
+                    Result.withDefault ast <| P.parse aceCodeBoxInfo.code
+            in
                 ( { model | code = aceCodeBoxInfo.code, ast = newAst }, Cmd.none )
 
 
