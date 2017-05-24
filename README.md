@@ -1,6 +1,8 @@
-# Elm Develop Environment
+# Dotty
 
-[![CircleCI](https://circleci.com/gh/ababup1192/elm-dev-env.svg?style=svg)](https://circleci.com/gh/ababup1192/elm-dev-env)
+This is a Hybrid language for drawing dots.
+
+[![CircleCI](https://circleci.com/gh/ababup1192/dotty.svg?style=svg)](https://circleci.com/gh/ababup1192/dotty)
 
 ## Require
 
