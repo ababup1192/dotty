@@ -53,7 +53,7 @@ drawDots nodes ast mdrag =
                 xy =
                     case mdrag of
                         Just drag ->
-                            if id == drag.target then
+                            if id == drag.targetId then
                                 Util.getRealPosition drag position
                             else
                                 position

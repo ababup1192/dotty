@@ -90,13 +90,13 @@ dragAt drag ({ ast, code } as model) xy =
             { drag | current = xy }
 
         targetPosition =
-            Ast.getPosition currentDrag.target ast
+            Ast.getPosition currentDrag.targetId ast
     in
         case targetPosition of
             Just position ->
                 let
                     newAst =
-                        Ast.updatePosition currentDrag.target position ast
+                        Ast.updatePosition currentDrag.targetId position ast
 
                     newCode =
                         Result.withDefault code <| Unparser.unparse newAst <| Just currentDrag
@@ -120,12 +120,12 @@ dragEnd : Models.Drag -> Model -> ( Model, Cmd Msg )
 dragEnd drag ({ ast, code } as model) =
     let
         mPosition =
-            Ast.getPosition drag.target ast
+            Ast.getPosition drag.targetId ast
 
         newAst =
             case mPosition of
                 Just position ->
-                    Ast.updatePosition drag.target (Util.getRealPosition drag position) ast
+                    Ast.updatePosition drag.targetId (Util.getRealPosition drag position) ast
 
                 Nothing ->
                     Debug.crash "Can not get mouse position"

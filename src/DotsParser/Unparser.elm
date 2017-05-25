@@ -66,8 +66,8 @@ point (MT.Tree { id, data } children) mdrag =
                     "(" ++ sx ++ ", " ++ sy ++ ")"
             in
                 case mdrag of
-                    Just ({ target } as drag) ->
-                        if target == id then
+                    Just ({ targetId } as drag) ->
+                        if targetId == id then
                             pointHelper drag position
                         else
                             Ok <| ps x_ y_

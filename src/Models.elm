@@ -14,7 +14,7 @@ type alias Model =
 type alias Drag =
     { start : Position
     , current : Position
-    , target : Ast.Id
+    , targetId : Ast.Id
     }
 
 
