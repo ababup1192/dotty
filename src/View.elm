@@ -12,6 +12,7 @@ import Models exposing (Drag, Model)
 import AppConstant
 import DotsParser.Ast as Ast exposing (Ast)
 import Mouse exposing (Position)
+import Util
 
 
 view : Model -> Html Msg
@@ -50,10 +51,10 @@ drawDots nodes ast mdrag =
         (\{ position, id } ->
             let
                 xy =
-                    case ( getRealPosition mdrag <| Just position, mdrag ) of
-                        ( Just pos, Just drag ) ->
+                    case mdrag of
+                        Just drag ->
                             if id == drag.target then
-                                pos
+                                Util.getRealPosition drag position
                             else
                                 position
 
@@ -89,16 +90,3 @@ onCanvasClick =
 onCircleMouseDown : Ast.Id -> Svg.Attribute Msg
 onCircleMouseDown target =
     SvgEvent.on "mousedown" (Decode.map (\position -> Msg.DragStart position target) Mouse.position)
-
-
-getRealPosition : Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
-getRealPosition drag mPosition =
-    case ( drag, mPosition ) of
-        ( Just { start, current, target }, Just position ) ->
-            Just <|
-                Mouse.Position
-                    (position.x + current.x - start.x)
-                    (position.y + current.y - start.y)
-
-        _ ->
-            Nothing

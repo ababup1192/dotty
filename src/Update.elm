@@ -8,6 +8,7 @@ import DotsParser.Parser as P
 import DotsParser.Unparser as Unparser
 import AppConstant
 import Mouse
+import Util
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -122,9 +123,9 @@ dragEnd drag ({ ast, code } as model) =
             Ast.getPosition drag.target ast
 
         newAst =
-            case (getRealPosition drag mPosition) of
+            case mPosition of
                 Just position ->
-                    Ast.updatePosition drag.target position ast
+                    Ast.updatePosition drag.target (Util.getRealPosition drag position) ast
 
                 Nothing ->
                     Debug.crash "Can not get mouse position"
@@ -142,16 +143,3 @@ dragEnd drag ({ ast, code } as model) =
         ( newModel
         , Cmd.none
         )
-
-
-getRealPosition : Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
-getRealPosition { start, current } mPosition =
-    case mPosition of
-        Just position ->
-            Just <|
-                Mouse.Position
-                    (position.x + current.x - start.x)
-                    (position.y + current.y - start.y)
-
-        _ ->
-            Nothing
