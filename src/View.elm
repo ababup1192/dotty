@@ -15,12 +15,12 @@ import Mouse exposing (Position)
 
 
 view : Model -> Html Msg
-view ({ code, ast, drag } as model) =
+view ({ code, ast, mdrag } as model) =
     div
         [ Attr.class "hybridEditor"
         ]
         [ textEditor
-        , visualEditor ast drag
+        , visualEditor ast mdrag
         ]
 
 

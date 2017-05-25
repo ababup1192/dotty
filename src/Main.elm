@@ -26,13 +26,13 @@ initCmd =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    case model.drag of
-        Just _ ->
+subscriptions { mdrag } =
+    case mdrag of
+        Just drag ->
             Sub.batch
                 [ AceCodeBox.receiveEditorState msgAceUpdate
-                , Mouse.moves Msg.DragAt
-                , Mouse.ups Msg.DragEnd
+                , Mouse.moves <| Msg.DragAt drag
+                , Mouse.ups <| Msg.DragEnd drag
                 ]
 
         Nothing ->
