@@ -112,7 +112,7 @@ dragAt ({ drag, ast, code } as model) xy =
                     )
 
             ( Nothing, _ ) ->
-                Debug.crash "can not get realPosition"
+                ( model, Cmd.none )
 
             ( _, Nothing ) ->
                 Debug.crash "can not found drag"
