@@ -91,33 +91,31 @@ dragAt ({ drag, ast, code } as model) xy =
         realPosition =
             Maybe.andThen (\d -> Ast.getPosition d.target ast) newDrag
     in
-        case realPosition of
-            Just position ->
-                case newDrag of
-                    Just { target } ->
-                        let
-                            newAst =
-                                Ast.updatePosition target position ast
+        case ( realPosition, newDrag ) of
+            ( Just position, Just { target } ) ->
+                let
+                    newAst =
+                        Ast.updatePosition target position ast
 
-                            newCode =
-                                Result.withDefault code <| Unparser.unparse newAst newDrag
+                    newCode =
+                        Result.withDefault code <| Unparser.unparse newAst newDrag
 
-                            newModel =
-                                { model
-                                    | drag = newDrag
-                                    , ast = newAst
-                                    , code = newCode
-                                }
-                        in
-                            ( newModel
-                            , AceCodeBox.displayCode newModel
-                            )
+                    newModel =
+                        { model
+                            | drag = newDrag
+                            , ast = newAst
+                            , code = newCode
+                        }
+                in
+                    ( newModel
+                    , AceCodeBox.displayCode newModel
+                    )
 
-                    Nothing ->
-                        Debug.crash "can not found drag"
-
-            Nothing ->
+            ( Nothing, _ ) ->
                 Debug.crash "can not get realPosition"
+
+            ( _, Nothing ) ->
+                Debug.crash "can not found drag"
 
 
 dragEnd : Model -> ( Model, Cmd Msg )
@@ -159,17 +157,12 @@ dragEnd ({ ast, drag, code } as model) =
 
 getRealPosition : Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
 getRealPosition drag mPosition =
-    case drag of
-        Just { start, current, target } ->
-            case mPosition of
-                Just position ->
-                    Just <|
-                        Mouse.Position
-                            (position.x + current.x - start.x)
-                            (position.y + current.y - start.y)
+    case ( drag, mPosition ) of
+        ( Just { start, current, target }, Just position ) ->
+            Just <|
+                Mouse.Position
+                    (position.x + current.x - start.x)
+                    (position.y + current.y - start.y)
 
-                Nothing ->
-                    Nothing
-
-        Nothing ->
+        _ ->
             Nothing
