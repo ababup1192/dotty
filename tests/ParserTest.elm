@@ -97,6 +97,7 @@ unparserTest =
         ]
 
 
+unparserWithDragTest : Test
 unparserWithDragTest =
     describe "DotsParser.Unparser Test" <|
         [ "unparseAst Root <| NList [] with Just Drag"

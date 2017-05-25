@@ -31,45 +31,43 @@ update msg model =
 
 updateCode : Model -> AceCodeBox.AceCodeBoxInfo -> ( Model, Cmd Msg )
 updateCode ({ ast, drag } as model) aceCodeBoxInfo =
-    let
-        newAst =
-            Result.withDefault ast <| P.parse aceCodeBoxInfo.code
-    in
-        case drag of
-            Just _ ->
-                ( { model | code = aceCodeBoxInfo.code }
-                , Cmd.none
-                )
+    case drag of
+        Just _ ->
+            ( { model | code = aceCodeBoxInfo.code }
+            , Cmd.none
+            )
 
-            Nothing ->
-                ( { model | code = aceCodeBoxInfo.code, ast = newAst, drag = Nothing }
-                , Cmd.none
-                )
+        Nothing ->
+            let
+                newAst =
+                    Result.withDefault ast <| P.parse aceCodeBoxInfo.code
+            in
+                ( { model | code = aceCodeBoxInfo.code, ast = newAst }, Cmd.none )
 
 
 canvasClick : Model -> Mouse.Position -> ( Model, Cmd Msg )
 canvasClick ({ code, ast, drag } as model) position =
-    let
-        newPosition =
-            { x = position.x - AppConstant.diffX, y = position.y - AppConstant.diffY }
+    case drag of
+        Just _ ->
+            ( model, Cmd.none )
 
-        newAst =
-            Ast.insertPosition newPosition ast
+        Nothing ->
+            let
+                newPosition =
+                    { x = position.x - AppConstant.diffX, y = position.y - AppConstant.diffY }
 
-        newCode =
-            Result.withDefault code (Unparser.unparse newAst Nothing)
+                newAst =
+                    Ast.insertPosition newPosition ast
 
-        newModel =
-            { model
-                | ast = newAst
-                , code = newCode
-            }
-    in
-        case drag of
-            Just _ ->
-                ( model, Cmd.none )
+                newCode =
+                    Result.withDefault code (Unparser.unparse newAst Nothing)
 
-            Nothing ->
+                newModel =
+                    { model
+                        | ast = newAst
+                        , code = newCode
+                    }
+            in
                 ( newModel
                 , AceCodeBox.displayCode newModel
                 )
