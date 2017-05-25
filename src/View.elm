@@ -70,9 +70,10 @@ drawDots nodes ast mdrag =
                 c =
                     circle
                         [ onCircleMouseDown id
+                        , SvgAttr.class "circle"
                         , SvgAttr.cx cx
                         , SvgAttr.cy cy
-                        , SvgAttr.r "3"
+                        , SvgAttr.r "4"
                         , SvgAttr.fill "#0B79CE"
                         ]
                         []
