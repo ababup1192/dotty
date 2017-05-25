@@ -4,6 +4,7 @@ import DotsParser.Ast exposing (Ast, NodeData(NPosition, NList, NRoot))
 import MultiwayTree as MT
 import Models exposing (Drag)
 import Mouse
+import Util
 
 
 unparse : Ast -> Maybe Drag -> Result String String
@@ -65,8 +66,8 @@ point (MT.Tree { id, data } children) mdrag =
                     "(" ++ sx ++ ", " ++ sy ++ ")"
             in
                 case mdrag of
-                    Just ({ target } as drag) ->
-                        if target == id then
+                    Just ({ targetId } as drag) ->
+                        if targetId == id then
                             pointHelper drag position
                         else
                             Ok <| ps x_ y_
@@ -82,7 +83,7 @@ pointHelper : Models.Drag -> Mouse.Position -> Result String String
 pointHelper drag position =
     let
         realPosition =
-            getRealPosition drag position
+            Util.getRealPosition drag position
 
         x =
             toString <| realPosition.x
@@ -94,10 +95,3 @@ pointHelper drag position =
             "(" ++ sx ++ ", " ++ sy ++ ")"
     in
         Ok <| ps x y
-
-
-getRealPosition : Models.Drag -> Mouse.Position -> Mouse.Position
-getRealPosition { start, current } position =
-    Mouse.Position
-        (position.x + current.x - start.x)
-        (position.y + current.y - start.y)

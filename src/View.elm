@@ -12,15 +12,16 @@ import Models exposing (Drag, Model)
 import AppConstant
 import DotsParser.Ast as Ast exposing (Ast)
 import Mouse exposing (Position)
+import Util
 
 
 view : Model -> Html Msg
-view ({ code, ast, drag } as model) =
+view ({ code, ast, mdrag } as model) =
     div
         [ Attr.class "hybridEditor"
         ]
         [ textEditor
-        , visualEditor ast drag
+        , visualEditor ast mdrag
         ]
 
 
@@ -50,10 +51,10 @@ drawDots nodes ast mdrag =
         (\{ position, id } ->
             let
                 xy =
-                    case ( getRealPosition mdrag <| Just position, mdrag ) of
-                        ( Just pos, Just drag ) ->
-                            if id == drag.target then
-                                pos
+                    case mdrag of
+                        Just drag ->
+                            if id == drag.targetId then
+                                Util.getRealPosition drag position
                             else
                                 position
 
@@ -69,9 +70,10 @@ drawDots nodes ast mdrag =
                 c =
                     circle
                         [ onCircleMouseDown id
+                        , SvgAttr.class "circle"
                         , SvgAttr.cx cx
                         , SvgAttr.cy cy
-                        , SvgAttr.r "3"
+                        , SvgAttr.r "4"
                         , SvgAttr.fill "#0B79CE"
                         ]
                         []
@@ -89,16 +91,3 @@ onCanvasClick =
 onCircleMouseDown : Ast.Id -> Svg.Attribute Msg
 onCircleMouseDown target =
     SvgEvent.on "mousedown" (Decode.map (\position -> Msg.DragStart position target) Mouse.position)
-
-
-getRealPosition : Maybe Models.Drag -> Maybe Mouse.Position -> Maybe Mouse.Position
-getRealPosition drag mPosition =
-    case ( drag, mPosition ) of
-        ( Just { start, current, target }, Just position ) ->
-            Just <|
-                Mouse.Position
-                    (position.x + current.x - start.x)
-                    (position.y + current.y - start.y)
-
-        _ ->
-            Nothing
