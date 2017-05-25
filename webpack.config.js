@@ -1,6 +1,8 @@
 var path = require("path");
 
 module.exports = {
+    devtool: "source-map",
+
     entry: {
         app: [
             './src/public/index.js'
@@ -29,13 +31,13 @@ module.exports = {
             {
                 test:    /\.elm$/,
                 exclude: [/elm-stuff/, /node_modules/],
-                use:  'elm-webpack?verbose=true&warn=true',
+                use:  'elm-webpack?verbose=true&warn=true&debug=true'
             }
         ],
 
         noParse: /\.elm$/,
     },
-    
+
     resolveLoader: {
         moduleExtensions: ["-loader"]
     },
@@ -43,6 +45,6 @@ module.exports = {
     devServer: {
         inline: true,
         stats: { colors: true },
-    },
+    }
 
 };
