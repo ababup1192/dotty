@@ -14,6 +14,7 @@ all =
         [ updateCodeTest
         , canvasClickTest
         , dragStartTest
+        , dragAtTest
         ]
 
 
@@ -145,5 +146,36 @@ dragStartTest =
                             ]
                         ]
                 , drag = Just <| Drag { x = 10, y = 10 } { x = 10, y = 10 } [ 0, 1 ]
+                }
+        ]
+
+
+dragAtTest : Test
+dragAtTest =
+    describe "Update.dragAt Test" <|
+        [ "dragAt [(0, 0), (5, 5)] <| drag (5, 6) [0, 1]"
+            => Tuple.first
+                (dragAt
+                    { code = "[(0, 0), (5, 5)]"
+                    , ast =
+                        Ast.rootNode
+                            [ Ast.listNode [ 0 ]
+                                [ Ast.positionNode [ 0, 0 ] [] { x = 0, y = 0 }
+                                , Ast.positionNode [ 0, 1 ] [] { x = 5, y = 5 }
+                                ]
+                            ]
+                    , drag = Just <| Drag { x = 5, y = 5 } { x = 5, y = 5 } [ 0, 1 ]
+                    }
+                    { x = 5, y = 6 }
+                )
+            === { code = "[(0, 0), (5, 6)]"
+                , ast =
+                    Ast.rootNode
+                        [ Ast.listNode [ 0 ]
+                            [ Ast.positionNode [ 0, 0 ] [] { x = 0, y = 0 }
+                            , Ast.positionNode [ 0, 1 ] [] { x = 5, y = 5 }
+                            ]
+                        ]
+                , drag = Just <| Drag { x = 5, y = 5 } { x = 5, y = 6 } [ 0, 1 ]
                 }
         ]
