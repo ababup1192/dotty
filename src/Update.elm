@@ -151,7 +151,7 @@ dragEnd ({ ast, drag, code } as model) =
             }
     in
         ( newModel
-        , AceCodeBox.displayCode newModel
+        , Cmd.none
         )
 
 
