@@ -13,6 +13,7 @@ all =
     describe "Update module Test" <|
         [ updateCodeTest
         , canvasClickTest
+        , dragStartTest
         ]
 
 
@@ -112,5 +113,37 @@ canvasClickTest =
                             ]
                         ]
                 , drag = Just <| Drag { x = 0, y = 0 } { x = 0, y = 0 } [ 0, 0 ]
+                }
+        ]
+
+
+dragStartTest : Test
+dragStartTest =
+    describe "Update.dragStart Test" <|
+        [ "dragStart []"
+            => Tuple.first
+                (dragStart
+                    { code = "[(0, 0), (10, 10)]"
+                    , ast =
+                        Ast.rootNode
+                            [ Ast.listNode [ 0 ]
+                                [ Ast.positionNode [ 0, 0 ] [] { x = 0, y = 0 }
+                                , Ast.positionNode [ 0, 1 ] [] { x = 10, y = 10 }
+                                ]
+                            ]
+                    , drag = Nothing
+                    }
+                    { x = 10, y = 10 }
+                    [ 0, 1 ]
+                )
+            === { code = "[(0, 0), (10, 10)]"
+                , ast =
+                    Ast.rootNode
+                        [ Ast.listNode [ 0 ]
+                            [ Ast.positionNode [ 0, 0 ] [] { x = 0, y = 0 }
+                            , Ast.positionNode [ 0, 1 ] [] { x = 10, y = 10 }
+                            ]
+                        ]
+                , drag = Just <| Drag { x = 10, y = 10 } { x = 10, y = 10 } [ 0, 1 ]
                 }
         ]
