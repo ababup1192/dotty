@@ -133,6 +133,12 @@ data ast =
             nodeDataId.data
 
 
+getChildren : Ast -> List Ast
+getChildren ast =
+    case ast of
+        Tree _ cld -> cld
+
+
 updatePositionHelper : Position -> NodeDataWithId -> NodeDataWithId
 updatePositionHelper position n =
     { n | data = NPosition position }
@@ -211,6 +217,44 @@ updatePosition id position ast =
                     &> Zipper.goToRoot
         in
             Maybe.withDefault ast <| mzipper2Ast updatedMZipper
+
+
+deletePosition : Id -> Ast -> Ast
+deletePosition id ast =
+    let
+        mzipper = ast2MZipper ast
+
+        parentId =
+            List.take (List.length id - 1) id
+
+        parentCommand = toWalkCommands <| parentId
+
+        assignIdIfNPoint index ast =
+            case data ast of
+                NPosition position ->
+                    positionNode (List.reverse <| index :: parentId) [] position
+
+                _ ->
+                    ast
+
+        assignId asts =
+            List.foldl (\ast ( acc, index ) -> ( (assignIdIfNPoint index ast) :: acc, index + 1 )) ( [], 0 ) asts
+
+        oldChildren =
+            Maybe.map (\(ast, _) -> getChildren ast) <| applyCommands parentCommand <| ast2MZipper ast
+
+        delete =
+            List.filter (\ast ->
+                case ast of
+                    Tree nodeId _ ->
+                        nodeId.id /= id)
+
+        newChildren =
+            Maybe.map (List.reverse << Tuple.first << assignId << delete) oldChildren
+
+
+    in
+        Maybe.withDefault ast <| Maybe.map (\children -> rootNode [ listNode [ 0 ] children ]) newChildren
 
 
 toWalkCommands : Id -> List (ZipperAst -> Maybe ZipperAst)

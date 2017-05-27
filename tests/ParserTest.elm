@@ -15,6 +15,7 @@ all =
         , getPositionTest
         , insertPositionTest
         , updatePositionTest
+        , deletePositionTest
         , ast2PositionsTest
         , unparserTest
         , unparserWithDragTest
@@ -65,6 +66,18 @@ updatePositionTest =
         [ "[(1, 2), (3, 4)] -> [(1, 2), (5, 6)]"
             => (parse "[(1, 2), (3, 4)]" |> Result.map (updatePosition [ 0, 1 ] { x = 5, y = 6 }))
             === (Ok <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 5, y = 6 } ] ])
+        ]
+
+deletePositionTest : Test
+deletePositionTest =
+    describe "DotsParser.Ast Test" <|
+        [ "[(1, 2), (3, 4)] -> [(1, 2)]"
+            => (deletePosition [ 0, 1 ] <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
+            === (rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 } ] ])
+
+        , "[(1, 2), (3, 4)] -> [(1, 2), (3, 4)]"
+            => (deletePosition [ 0, 3 ] <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
+            === (rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
         ]
 
 
