@@ -1,8 +1,8 @@
 module DotsParser.Ast exposing (..)
 
+import Mouse exposing (Position)
 import MultiwayTree exposing (Forest, Tree(..))
 import MultiwayTreeZipper as Zipper exposing (Zipper)
-import Mouse exposing (Position)
 
 
 type alias Index =
@@ -76,7 +76,7 @@ mzipper2MNForest =
 listMZipper2ListPositionWithId : Maybe ZipperAst -> List PositionWithId
 listMZipper2ListPositionWithId listMZipper =
     List.reverse <|
-        case (mzipper2MNForest listMZipper) of
+        case mzipper2MNForest listMZipper of
             Just children ->
                 List.foldl
                     (\ast acc ->
@@ -108,7 +108,7 @@ ast2Positions ast =
             mzipper
                 &> Zipper.goToChild 0
     in
-        listMZipper2ListPositionWithId listMZipper
+    listMZipper2ListPositionWithId listMZipper
 
 
 rootNode : NForest -> Ast
@@ -131,6 +131,13 @@ data ast =
     case ast of
         Tree nodeDataId _ ->
             nodeDataId.data
+
+
+getChildren : Ast -> List Ast
+getChildren ast =
+    case ast of
+        Tree _ cld ->
+            cld
 
 
 updatePositionHelper : Position -> NodeDataWithId -> NodeDataWithId
@@ -164,7 +171,7 @@ getPosition id ast =
                                 Nothing
                     )
     in
-        mposition
+    mposition
 
 
 insertPosition : Position -> Ast -> Ast
@@ -193,7 +200,7 @@ insertPosition position ast =
                 &> Zipper.appendChild (positionNode newId [] position)
                 &> Zipper.goToRoot
     in
-        Maybe.withDefault ast <| mzipper2Ast insertedMZipper
+    Maybe.withDefault ast <| mzipper2Ast insertedMZipper
 
 
 updatePosition : Id -> Position -> Ast -> Ast
@@ -204,13 +211,53 @@ updatePosition id position ast =
                 |> ast2MZipper
                 |> applyCommands (toWalkCommands id)
     in
-        let
-            updatedMZipper =
-                mzipper
-                    &> Zipper.updateDatum (updatePositionHelper position)
-                    &> Zipper.goToRoot
-        in
-            Maybe.withDefault ast <| mzipper2Ast updatedMZipper
+    let
+        updatedMZipper =
+            mzipper
+                &> Zipper.updateDatum (updatePositionHelper position)
+                &> Zipper.goToRoot
+    in
+    Maybe.withDefault ast <| mzipper2Ast updatedMZipper
+
+
+deletePosition : Id -> Ast -> Ast
+deletePosition id ast =
+    let
+        mzipper =
+            ast2MZipper ast
+
+        parentId =
+            List.take (List.length id - 1) id
+
+        parentCommand =
+            toWalkCommands <| parentId
+
+        assignIdIfNPoint index ast =
+            case data ast of
+                NPosition position ->
+                    positionNode (List.reverse <| index :: parentId) [] position
+
+                _ ->
+                    ast
+
+        assignId asts =
+            List.foldl (\ast ( acc, index ) -> ( assignIdIfNPoint index ast :: acc, index + 1 )) ( [], 0 ) asts
+
+        oldChildren =
+            Maybe.map (\( ast, _ ) -> getChildren ast) <| applyCommands parentCommand <| ast2MZipper ast
+
+        delete =
+            List.filter
+                (\ast ->
+                    case ast of
+                        Tree nodeId _ ->
+                            nodeId.id /= id
+                )
+
+        newChildren =
+            Maybe.map (List.reverse << Tuple.first << assignId << delete) oldChildren
+    in
+    Maybe.withDefault ast <| Maybe.map (\children -> rootNode [ listNode [ 0 ] children ]) newChildren
 
 
 toWalkCommands : Id -> List (ZipperAst -> Maybe ZipperAst)

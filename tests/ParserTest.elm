@@ -1,11 +1,11 @@
 module ParserTest exposing (all)
 
-import Test exposing (..)
-import TestExp exposing (..)
 import DotsParser.Ast exposing (..)
 import DotsParser.Parser exposing (dotsParser, parse)
 import DotsParser.Unparser exposing (unparse)
 import Models exposing (Drag)
+import Test exposing (..)
+import TestExp exposing (..)
 
 
 all : Test
@@ -15,6 +15,7 @@ all =
         , getPositionTest
         , insertPositionTest
         , updatePositionTest
+        , deletePositionTest
         , ast2PositionsTest
         , unparserTest
         , unparserWithDragTest
@@ -68,6 +69,18 @@ updatePositionTest =
         ]
 
 
+deletePositionTest : Test
+deletePositionTest =
+    describe "DotsParser.Ast Test" <|
+        [ "[(1, 2), (3, 4)] -> [(1, 2)]"
+            => (deletePosition [ 0, 1 ] <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
+            === rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 } ] ]
+        , "[(1, 2), (3, 4)] -> [(1, 2), (3, 4)]"
+            => (deletePosition [ 0, 3 ] <| rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
+            === rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ]
+        ]
+
+
 ast2PositionsTest : Test
 ast2PositionsTest =
     describe "DotsParser.Ast Test" <|
@@ -87,13 +100,13 @@ unparserTest =
     describe "DotsParser.Unparser Test" <|
         [ "unparseAst Root <| NList []"
             => unparse (rootNode [ listNode [ 0 ] [] ]) Nothing
-            === (Ok "[]")
+            === Ok "[]"
         , "unparseAst Root <| NList [NPoint 1 2]"
             => unparse (rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 } ] ]) Nothing
-            === (Ok "[(1, 2)]")
+            === Ok "[(1, 2)]"
         , "unparseAst Root <| NList [NPoint 1 2, 3 4]"
             => unparse (rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 0 ] [] { x = 3, y = 4 } ] ]) Nothing
-            === (Ok "[(1, 2), (3, 4)]")
+            === Ok "[(1, 2), (3, 4)]"
         ]
 
 
@@ -104,10 +117,10 @@ unparserWithDragTest =
             => unparse
                 (rootNode [ listNode [ 0 ] [] ])
                 (Just <| Drag { x = 0, y = 0 } { x = 0, y = 0 } [ 0, 0 ])
-            === (Ok "[]")
+            === Ok "[]"
         , "unparseAst Root <| NList [NPoint 1 2, 3 4] with Just Drag"
             => unparse
                 (rootNode [ listNode [ 0 ] [ positionNode [ 0, 0 ] [] { x = 1, y = 2 }, positionNode [ 0, 1 ] [] { x = 3, y = 4 } ] ])
                 (Just <| Drag { x = 3, y = 4 } { x = 10, y = 10 } [ 0, 1 ])
-            === (Ok "[(1, 2), (10, 10)]")
+            === Ok "[(1, 2), (10, 10)]"
         ]
